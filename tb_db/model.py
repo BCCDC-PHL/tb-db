@@ -4,10 +4,13 @@ from sqlalchemy import Integer
 from sqlalchemy import Float
 from sqlalchemy import String
 from sqlalchemy import Date
+from sqlalchemy import DateTime
 from sqlalchemy import JSON
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import declared_attr
+from sqlalchemy.orm import declarative_mixin
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 
 def camel_to_snake(s):
@@ -25,7 +28,13 @@ class Base:
 Base = declarative_base(cls=Base)
 
 
-class Sample(Base):
+@declarative_mixin
+class HistoryMixin:
+    created_at = Column(DateTime, default=func.now())
+    valid_until = Column(DateTime, default=None, onupdate=func.now())
+
+
+class Sample(Base, HistoryMixin):
 
     sample_id = Column(String)
     collection_date = Column(Date)
@@ -43,14 +52,14 @@ class Library(Base):
     library_id = Column(String)
 
 
-class CgmlstScheme(Base):
+class CgmlstScheme(Base, HistoryMixin):
 
     name = Column(String)
     version = Column(String)
     num_loci = Column(Integer)
 
 
-class CgmlstAlleleProfile(Base):
+class CgmlstAlleleProfile(Base, HistoryMixin):
 
     sample_id = Column(Integer, ForeignKey("sample.id"), nullable=False)
     cgmlst_scheme_id = Column(Integer, ForeignKey("cgmlst_scheme.id"), nullable=True)
@@ -58,14 +67,14 @@ class CgmlstAlleleProfile(Base):
     profile = Column(JSON)
 
 
-class MiruProfile(Base):
+class MiruProfile(Base, HistoryMixin):
 
     sample_id = Column(Integer, ForeignKey("sample.id"), nullable=False)
     percent_called = Column(Float)
     profile = Column(JSON)
 
 
-class CgmlstCluster(Base):
+class CgmlstCluster(Base, HistoryMixin):
 
     cluster_id = Column(String)
 
@@ -74,7 +83,7 @@ class CgmlstCluster(Base):
     )
 
 
-class MiruCluster(Base):
+class MiruCluster(Base, HistoryMixin):
 
     cluster_id = Column(String)
     samples = relationship(
