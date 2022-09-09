@@ -16,7 +16,7 @@ Create a conda environment, activate it, and install the project dependencies. T
 ```
 conda create -n tb-db python=3.10
 conda activate tb-db
-pip install -e .
+pip install -e ".[dev]"
 ```
 
 If you haven't already done so, create a PostgreSQL user to use for database development.
@@ -65,3 +65,30 @@ scripts/load_cgmlst.py -c dev-config.json test/data/cgmlst_01.csv
 ```
 
 Use a database tool to confirm that the data was loaded as expected.
+
+### Running tests
+
+Unit tests can be written into the `tests` directory. 
+
+Appropriate fixtures to use for testing against the database have been defined in `tests/conftest.py`.
+
+To write a test that needs a database connection, use the `db_session` fixture. For example:
+```python
+
+from tb_db.models import Sample
+
+def test_creating_new_sample(db_session):
+    sample = Sample(sample_id='sample1')
+    db_session.add(sample)
+    db_session.commit()
+    db_session.refresh(sample)
+    assert sample.id is not None
+```
+
+The fixtures are designed to create the appropriate tables and load the data needed at the start. Transactions run within a test are rolledback at the end of the test. So, there is separation between tests. All tables are removed at the of testing, so there is no need to clean up after tests.
+
+To run the tests, run the following:
+
+```bash
+pytest
+```
