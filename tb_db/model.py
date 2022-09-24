@@ -17,7 +17,14 @@ from sqlalchemy.orm import make_transient
 from sqlalchemy.orm import Session
 
 
-def camel_to_snake(s):
+def camel_to_snake(s: str) -> str:
+    """
+    Converts camelCase to snake_case
+    :param s: String to convert
+    :type s: str
+    :return: snake_case equivalent of camelCase input
+    :rtype: str
+    """
     return "".join(["_" + c.lower() if c.isupper() else c for c in s]).lstrip("_")
 
 
@@ -75,7 +82,9 @@ def before_flush(session, flush_context, instances):
 class Sample(Base, HistoryMixin):
 
     sample_id = Column(String)
+    accession = Column(String)
     collection_date = Column(Date)
+
     cgmlst_cluster_id = Column(
         Integer,
         ForeignKey("cgmlst_cluster.id"),
@@ -88,6 +97,8 @@ class Sample(Base, HistoryMixin):
 
 
 class Library(Base):
+    """
+    """
 
     sample_id = Column(Integer, ForeignKey("sample.id"), nullable=False)
     sequencing_run_id = Column(String)
@@ -95,6 +106,8 @@ class Library(Base):
 
 
 class CgmlstScheme(Base, HistoryMixin):
+    """
+    """
 
     name = Column(String)
     version = Column(String)
@@ -102,6 +115,8 @@ class CgmlstScheme(Base, HistoryMixin):
 
 
 class CgmlstAlleleProfile(Base, HistoryMixin):
+    """
+    """
 
     sample_id = Column(Integer, ForeignKey("sample.id"), nullable=False)
     cgmlst_scheme_id = Column(Integer, ForeignKey("cgmlst_scheme.id"), nullable=True)
@@ -110,10 +125,13 @@ class CgmlstAlleleProfile(Base, HistoryMixin):
 
 
 class MiruProfile(Base, HistoryMixin):
+    """
+    """
 
     sample_id = Column(Integer, ForeignKey("sample.id"), nullable=False)
     percent_called = Column(Float)
-    profile = Column(JSON)
+    profile_by_position = Column(JSON)
+    miru_pattern = Column(String)
 
 
 class CgmlstCluster(Base, HistoryMixin):
