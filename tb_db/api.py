@@ -45,7 +45,7 @@ def store_cgmlst_allele_profiles(session, cgmlst_allele_profiles):
             session.commit()
         stmt = select(Sample).where(Sample.sample_id == c['sample_id'])
         sample = session.scalars(stmt).one()
-        cgmlst_allele_profile = CgMlstAlleleProfile(
+        cgmlst_allele_profile = CgmlstAlleleProfile(
             sample_id = sample.id,
             profile = json.dumps(c['profile']),
             percent_called = c['percent_called'],
