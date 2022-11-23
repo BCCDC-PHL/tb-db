@@ -4,11 +4,14 @@ import argparse
 import csv
 import json
 
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy import create_engine
 
-import tb_db.api as api
-    
+import tb_db.parsers as parsers
+import tb_db.crud as crud
+
+from tb_db.models import Sample
+
 
 def main(args):
     with open(args.config, 'r') as f:
@@ -18,9 +21,17 @@ def main(args):
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    cgmlst = api.parse_cgmlst(args.input)
+    cgmlst_by_sample_id = parsers.parse_cgmlst(args.input)
+    # print(json.dumps(cgmlst_by_sample_id, indent=2))
+    # exit()
+    cgmlst_profiles = list(cgmlst_by_sample_id.values())
+    created_profiles = crud.create_cgmlst_allele_profiles(session, cgmlst_profiles)
 
-    api.store_cgmlst_allele_profiles(session, cgmlst)
+    for profile in created_profiles:
+        stmt = select(Sample).where(Sample.id == profile.sample_id)
+        sample = session.scalars(stmt).one()
+        print("Created profile for sample: " + sample.sample_id)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

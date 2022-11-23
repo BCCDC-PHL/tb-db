@@ -7,8 +7,9 @@ import json
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy import create_engine
 
-import tb_db.api as api
-    
+import tb_db.parsers as parsers
+import tb_db.crud as crud
+
 
 def main(args):
     with open(args.config, 'r') as f:
@@ -18,9 +19,13 @@ def main(args):
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    samples = api.parse_samples(args.input)
+    samples = parsers.parse_samples(args.input)
     
-    api.store_samples(session, samples)
+    created_samples = crud.create_samples(session, samples)
+
+    for sample in created_samples:
+        print("Created sample: " + sample.sample_id)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

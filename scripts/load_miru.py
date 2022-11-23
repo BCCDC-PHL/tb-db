@@ -3,11 +3,14 @@
 import argparse
 import json
 
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy import create_engine
 
-import tb_db.api as api
-            
+import tb_db.parsers as parsers
+import tb_db.crud as crud
+
+from tb_db.models import Sample
+
     
 def main(args):
 
@@ -18,9 +21,15 @@ def main(args):
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    miru_profiles_by_sample_id = api.parse_miru(args.input)
+    miru_profiles_by_sample_id = parsers.parse_miru(args.input)
     # print(json.dumps(miru_profiles_by_sample_id, indent=2))
-    api.store_miru_profiles(session, miru_profiles_by_sample_id)
+    # exit()
+    created_profiles = crud.create_miru_profiles(session, miru_profiles_by_sample_id)
+
+    for profile in created_profiles:
+        stmt = select(Sample).where(Sample.id == profile.sample_id)
+        sample = session.scalars(stmt).one()
+        print("Created profile for sample: " + sample.sample_id)
 
 
 if __name__ == '__main__':
