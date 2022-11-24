@@ -77,7 +77,7 @@ def delete_sample(db: Session, sample_id: str):
     :return: All deleted records for sample.
     :rtype: list[models.Sample]
     """
-    sample_records = db.query(Sample).where(Sample.sample_id == sample_id)
+    sample_records = db.query(Sample).where(Sample.sample_id == sample_id).all()
 
     for sample_record in sample_records:
         db.delete(sample_record)
