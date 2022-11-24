@@ -62,6 +62,7 @@ Load some test data:
 ```
 scripts/load_samples.py -c dev-config.json test/data/samples_01.csv
 scripts/load_cgmlst.py -c dev-config.json test/data/cgmlst_01.csv
+scripts/load_miru.py -c dev-config.json test/data/miru_01.csv
 ```
 
 Use a database tool to confirm that the data was loaded as expected.
@@ -85,7 +86,8 @@ def test_creating_new_sample(db_session):
     assert sample.id is not None
 ```
 
-The fixtures are designed to create the appropriate tables and load the data needed at the start. Transactions run within a test are rolledback at the end of the test. So, there is separation between tests. All tables are removed at the of testing, so there is no need to clean up after tests.
+The fixtures are designed to create the appropriate tables and load the data needed at the start. Transactions run within a test are rolledback at the end of the test.
+So, there is separation between tests. All tables are removed at the of testing, so there is no need to clean up after tests.
 
 To run the tests, run the following:
 
