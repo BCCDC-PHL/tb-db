@@ -1,6 +1,6 @@
 import json
 
-from sqlalchemy import select, and_
+from sqlalchemy import select, delete, and_
 from sqlalchemy.orm import Session
 
 from .models import *
@@ -64,6 +64,26 @@ def create_samples(db: Session, samples: list[dict[str, object]]):
         db.refresh(db_sample)
 
     return db_samples
+
+
+def delete_sample(db: Session, sample_id: str):
+    """
+    Delete all database records for a sample.
+
+    :param db: Database session
+    :type db: sqlalchemy.orm.Session
+    :param sample_id: Sample ID
+    :type sample_id: str
+    :return: All deleted records for sample.
+    :rtype: list[models.Sample]
+    """
+    sample_records = db.query(Sample).where(Sample.sample_id == sample_id)
+
+    for sample_record in sample_records:
+        db.delete(sample_record)
+    db.commit()
+
+    return sample_records
 
 
 ### cgMLST

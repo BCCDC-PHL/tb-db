@@ -50,3 +50,20 @@ class TestCrudSample(unittest.TestCase):
 
         self.assertIsNotNone(created_sample)
         self.assertEqual(created_sample.id, 1)
+
+
+    def test_delete_sample(self):
+        sample_dict = {
+            'sample_id': 'SAM001',
+            'accession': 'ACC001',
+            'collection_date': datetime.date(1970, 1, 1),
+        }
+
+        created_sample = crud.create_sample(self.session, sample_dict)
+        sample_id = created_sample.sample_id
+        deleted_sample_records = crud.delete_sample(self.session, sample_id)
+
+        for deleted_sample_record in deleted_sample_records:
+            self.assertEqual(sample_id, deleted_sample_record.sample_id)
+
+        
