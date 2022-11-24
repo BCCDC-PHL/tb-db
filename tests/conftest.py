@@ -10,8 +10,8 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
-from tb_db.model import Base
-from tb_db.model import Sample
+from tb_db.models import Base
+from tb_db.models import Sample
 
 
 @pytest.fixture(scope="session")
