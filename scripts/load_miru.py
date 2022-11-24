@@ -24,7 +24,14 @@ def main(args):
     miru_profiles_by_sample_id = parsers.parse_miru(args.input)
     # print(json.dumps(miru_profiles_by_sample_id, indent=2))
     # exit()
+    
     created_profiles = crud.create_miru_profiles(session, miru_profiles_by_sample_id)
+    
+    # created_profiles = []
+    # for sample_id, miru_profile in miru_profiles_by_sample_id.items():
+    #     created_profile = crud.create_miru_profile(session, sample_id, miru_profile)
+    #     if created_profile is not None:
+    #         created_profiles.append(created_profile)
 
     for profile in created_profiles:
         stmt = select(Sample).where(Sample.id == profile.sample_id)

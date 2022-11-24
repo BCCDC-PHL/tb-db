@@ -1,6 +1,6 @@
 import json
 
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from sqlalchemy.orm import Session
 
 from .models import *
@@ -88,7 +88,7 @@ def create_cgmlst_allele_profile(db: Session, cgmlst_allele_profile: dict[str, o
         )
         db.add(db_sample)
         db.commit()
-    stmt = select(Sample).where(Sample.sample_id == sample_id)
+    stmt = select(Sample).where(and_(Sample.sample_id == sample_id, Sample.valid_until == None))
     sample = db.scalars(stmt).one()
     db_cgmlst_allele_profile = CgmlstAlleleProfile(
         sample_id = sample.id,
@@ -126,7 +126,7 @@ def create_cgmlst_allele_profiles(db: Session, cgmlst_allele_profiles: list[dict
             )
             db.add(db_sample)
             db.commit()
-        stmt = select(Sample).where(Sample.sample_id == sample_id)
+        stmt = select(Sample).where(and_(Sample.sample_id == sample_id, Sample.valid_until == None))
         sample = db.scalars(stmt).one()
         db_cgmlst_allele_profile = CgmlstAlleleProfile(
             sample_id = sample.id,
@@ -172,19 +172,24 @@ def create_miru_profile(db: Session, sample_id: str, miru_profile: dict[str, obj
         db.add(db_miru_cluster)
         db.commit()
 
-    select_miru_cluster_stmt = select(MiruCluster).where(MiruCluster.cluster_id == cluster_id)
-    miru_cluster = db.scalars(select_miru_cluster_stmt).one()
+    select_miru_cluster_stmt = select(MiruCluster).where(and_(MiruCluster.cluster_id == cluster_id, MiruCluster.valid_until == None))
+    db_miru_cluster = db.scalars(select_miru_cluster_stmt).one()
 
     if sample_id not in existing_sample_ids:
         db_sample = Sample(
             sample_id = sample_id,
             collection_date = miru_profile['collection_date'],
-            miru_cluster_id = miru_cluster.id,
+            miru_cluster_id = db_miru_cluster.id,
         )
         db.add(db_sample)
         db.commit()
-            
-    select_sample_stmt = select(Sample).where(Sample.sample_id == sample_id)
+    else:
+        select_sample_stmt = select(Sample).where(and_(Sample.sample_id == sample_id, Sample.valid_until == None))
+        sample = db.scalars(select_sample_stmt).one()
+        sample.miru_cluster_id = db_miru_cluster.id
+        db.commit()
+
+    select_sample_stmt = select(Sample).where(and_(Sample.sample_id == sample_id, Sample.valid_until == None))
     sample = db.scalars(select_sample_stmt).one()
 
     vntr_fields = {}
@@ -207,12 +212,22 @@ def create_miru_profile(db: Session, sample_id: str, miru_profile: dict[str, obj
         profile_by_position = json.dumps(profile_by_position),
         miru_pattern = miru_profile['miru_pattern'],
     )
+    select_miru_profile_stmt = select(MiruProfile).where(and_(MiruProfile.sample_id == sample.id, MiruProfile.valid_until == None))
+    existing_profile_for_sample = db.scalars(select_miru_profile_stmt).one_or_none()
+    if existing_profile_for_sample is not None:
+        existing_profile_for_sample.percent_called = db_miru_profile.percent_called
+        existing_profile_for_sample.profile_by_position = db_miru_profile.profile_by_position
+        existing_profile_for_sample.miru_pattern = db_miru_profile.miru_pattern
+        db.commit()
+        db.refresh(existing_profile_for_sample)
+        created_miru_profile = existing_profile_for_sample
+    else:
+        db.add(db_miru_profile)
+        db.commit()
+        db.refresh(db_miru_profile)
+        created_miru_profile = db_miru_profile
 
-    db.add(db_miru_profile)
-    db.commit()
-    db.refresh(db_miru_profile)
-
-    return db_miru_profile
+    return created_miru_profile
 
 
 def create_miru_profiles(db: Session, miru_profiles_by_sample_id: dict[str, object]):
@@ -233,10 +248,11 @@ def create_miru_profiles(db: Session, miru_profiles_by_sample_id: dict[str, obje
     existing_miru_cluster_ids = set([cluster.cluster_id for cluster in existing_miru_clusters])
 
     db_miru_profiles = []
+    created_miru_profiles = []
     added_miru_cluster_ids = set()
     for sample_id, miru_profile in miru_profiles_by_sample_id.items():
         cluster_id = miru_profile['cluster']
-        if (cluster_id not in existing_miru_cluster_ids) and cluster_id not in added_miru_cluster_ids:
+        if (cluster_id not in existing_miru_cluster_ids) and (cluster_id not in added_miru_cluster_ids):
             db_miru_cluster = MiruCluster(
                 cluster_id = cluster_id,
             )
@@ -244,7 +260,7 @@ def create_miru_profiles(db: Session, miru_profiles_by_sample_id: dict[str, obje
             db.commit()
             added_miru_cluster_ids.add(cluster_id)
         else:
-            select_miru_cluster_stmt = select(MiruCluster).where(MiruCluster.cluster_id == cluster_id)
+            select_miru_cluster_stmt = select(MiruCluster).where(and_(MiruCluster.cluster_id == cluster_id, MiruCluster.valid_until == None))
             db_miru_cluster = db.scalars(select_miru_cluster_stmt).one()
 
         if sample_id not in existing_sample_ids:
@@ -256,8 +272,13 @@ def create_miru_profiles(db: Session, miru_profiles_by_sample_id: dict[str, obje
             )
             db.add(db_sample)
             db.commit()
-            
-        select_sample_stmt = select(Sample).where(Sample.sample_id == sample_id)
+        else:
+            select_sample_stmt = select(Sample).where(and_(Sample.sample_id == sample_id, Sample.valid_until == None))
+            sample = db.scalars(select_sample_stmt).one()
+            sample.miru_cluster_id = db_miru_cluster.id
+            db.commit()
+
+        select_sample_stmt = select(Sample).where(and_(Sample.sample_id == sample_id, Sample.valid_until == None))
         sample = db.scalars(select_sample_stmt).one()
 
         vntr_fields = {}
@@ -280,12 +301,23 @@ def create_miru_profiles(db: Session, miru_profiles_by_sample_id: dict[str, obje
             profile_by_position = json.dumps(profile_by_position),
             miru_pattern = miru_profile['miru_pattern'],
         )
-        db_miru_profiles.append(db_miru_profile)
+        select_miru_profile_stmt = select(MiruProfile).where(and_(MiruProfile.sample_id == sample.id, MiruProfile.valid_until == None))
+        existing_profile_for_sample = db.scalars(select_miru_profile_stmt).one_or_none()
+        if existing_profile_for_sample is not None:
+            existing_profile_for_sample.percent_called = db_miru_profile.percent_called
+            existing_profile_for_sample.profile_by_position = db_miru_profile.profile_by_position
+            existing_profile_for_sample.miru_pattern = db_miru_profile.miru_pattern
+            db.commit()
+            db.refresh(existing_profile_for_sample)
+            created_miru_profiles.append(existing_profile_for_sample)
+        else:
+            db_miru_profiles.append(db_miru_profile)
 
     db.add_all(db_miru_profiles)
     db.commit()
 
     for db_miru_profile in db_miru_profiles:
         db.refresh(db_miru_profile)
+        created_miru_profiles.append(db_miru_profile)
 
-    return db_miru_profiles
+    return created_miru_profiles
