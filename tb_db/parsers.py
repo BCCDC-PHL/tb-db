@@ -16,6 +16,21 @@ def parse_samples(samples_path):
             samples.append(sample)
 
     return samples
+    
+# cgmlst cluster
+def parse_cgmlst_cluster(samples_path):
+    samples = []
+    with open(samples_path, 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+
+            sample = {
+                'sample_id': row['sample_id'],
+                'cluster':row['clusters_cgmlst'],
+            }
+            samples.append(sample)
+
+    return samples
 
 
 ### MIRU

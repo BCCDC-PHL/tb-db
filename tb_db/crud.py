@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 
 from .models import *
 
+import tb_db.utils as utils
+import logging
 
 ### Samples
 def create_sample(db: Session, sample: dict[str, object]):
@@ -250,6 +252,9 @@ def create_miru_profile(db: Session, sample_id: str, miru_profile: dict[str, obj
     return created_miru_profile
 
 
+
+
+
 def create_miru_profiles(db: Session, miru_profiles_by_sample_id: dict[str, object]):
     """
     Create multiple MIRU profile records.
@@ -341,3 +346,128 @@ def create_miru_profiles(db: Session, miru_profiles_by_sample_id: dict[str, obje
         created_miru_profiles.append(db_miru_profile)
 
     return created_miru_profiles
+
+
+def get_miru_cluster_by_sample_id(db: Session, sample_id: str):
+    
+    query_result = db.query(Sample).filter(
+        Sample.sample_id == sample_id
+    )
+
+    miru_ids = []
+    for row in query_result:
+        miru_ids.append(utils.row2dict(row))
+    
+    for item in miru_ids:
+        if item['valid_until'] is None:
+            miru_cluster_id = item['miru_cluster_id']
+
+    query_result = db.query(MiruCluster).get(miru_cluster_id)
+    
+    miru_cluster_code = utils.row2dict(query_result)['cluster_id']
+
+    return miru_cluster_code
+
+
+### cgmlst
+def add_samples_to_cgmlst_clusters(db: Session, cgmlst_cluster: list[dict[str, object]]):
+    """
+    Create multiple cgmlst clusters, for sample specified by `sample_id`.
+
+    :param db: Database session.
+    :type db: sqlalchemy.orm.Session
+    :param sample_id: Sample ID
+    :type sample_id: str
+    :param cgmlst_cluster: Dict representing a cgmlst cluster.
+    :type cgmlst_cluster: dict[str, object]
+    :return: sample with cgmlst cluster added.
+    :rtype: models.Sample
+    """
+    existing_samples = db.query(Sample).all()
+    existing_sample_ids = set([sample.sample_id for sample in existing_samples])
+
+    existing_cgmlst_clusters = db.query(CgmlstCluster).all()
+    existing_cgmlst_cluster_ids = set([cluster.cluster_id for cluster in existing_cgmlst_clusters])
+
+    #cluster_id = cgmlst_cluster['cluster']
+    db_samples = []
+    added_cgmlst_cluster_ids = set()
+    for row in cgmlst_cluster:
+        sample_id = row['sample_id']
+        cluster_id = row['cluster']
+        if (cluster_id not in existing_cgmlst_cluster_ids) and (cluster_id not in added_cgmlst_cluster_ids):
+            db_cgmlst_cluster = CgmlstCluster(
+                cluster_id = cluster_id,
+            )
+            db.add(db_cgmlst_cluster)
+            db.commit()
+            added_cgmlst_cluster_ids.add(cluster_id)
+        select_cgmlst_cluster_stmt = select(CgmlstCluster).where(and_(CgmlstCluster.cluster_id == cluster_id, CgmlstCluster.valid_until == None))
+        db_cgmlst_cluster = db.scalars(select_cgmlst_cluster_stmt).one()
+        if sample_id not in existing_sample_ids:
+            logging.warning('cannot add cgmlst cluster for a sample that does not exist...')         
+        else:
+            select_sample_stmt = select(Sample).where(and_(Sample.sample_id == sample_id, Sample.valid_until == None))
+            sample = db.scalars(select_sample_stmt).one()
+            sample.cgmlst_cluster_id = db_cgmlst_cluster.id
+            db_samples.append(sample)
+            db.commit()
+            
+
+    #select_sample_stmt = select(Sample).where(and_(Sample.sample_id == sample_id, Sample.valid_until == None))
+    #sample = db.scalars(select_sample_stmt).one()
+    return db_samples
+
+### cgmlst
+def add_sample_to_cgmlst_cluster(db: Session, sample_id: str, cgmlst_cluster: dict[str, object]):
+
+    existing_samples = db.query(Sample).all()
+    existing_sample_ids = set([sample.sample_id for sample in existing_samples])
+
+    existing_cgmlst_clusters = db.query(CgmlstCluster).all()
+    existing_cgmlst_cluster_ids = set([cluster.cluster_id for cluster in existing_cgmlst_clusters])
+
+    cluster_id = cgmlst_cluster['cluster']
+    if (cluster_id not in existing_cgmlst_cluster_ids):
+        db_cgmlst_cluster = CgmlstCluster(
+            cluster_id = cluster_id,
+        )
+        db.add(db_cgmlst_cluster)
+        db.commit()
+
+    select_cgmlst_cluster_stmt = select(CgmlstCluster).where(and_(CgmlstCluster.cluster_id == cluster_id, CgmlstCluster.valid_until == None))
+    db_cgmlst_cluster = db.scalars(select_cgmlst_cluster_stmt).one()
+
+    if sample_id not in existing_sample_ids:
+        logging.warning('cannot add cgmlst cluster for a sample that does not exist...')
+        return None
+        
+    else:
+        select_sample_stmt = select(Sample).where(and_(Sample.sample_id == sample_id, Sample.valid_until == None))
+        sample = db.scalars(select_sample_stmt).one()
+        sample.cgmlst_cluster_id = db_cgmlst_cluster.id
+        db.commit()
+        return sample
+
+
+def get_cgmlst_cluster_by_sample_id(db: Session, sample_id: str):
+    
+    query_result = db.query(Sample).filter(
+        Sample.sample_id == sample_id
+    )
+
+    cgmlst_ids = []
+    for row in query_result:
+        cgmlst_ids.append(utils.row2dict(row))
+    
+    for item in cgmlst_ids:
+        if item['valid_until'] is None:
+            cgmlst_cluster_id = item['cgmlst_cluster_id']
+
+    query_result = db.query(CgmlstCluster).get(cgmlst_cluster_id)
+    
+    cgmlst_cluster_code = utils.row2dict(query_result)['cluster_id']
+
+
+
+    return cgmlst_cluster_code
