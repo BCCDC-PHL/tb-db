@@ -43,8 +43,7 @@ class TestCrudSample(unittest.TestCase):
         sample_dict = {
             'sample_id': 'SAM001',
             'accession': 'ACC001',
-            'collection_date': datetime.date(1970, 1, 1),
-            
+            'collection_date': datetime.date(1970, 1, 1),          
         }
 
         created_sample = crud.create_sample(self.session, sample_dict)

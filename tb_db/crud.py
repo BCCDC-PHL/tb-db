@@ -252,9 +252,6 @@ def create_miru_profile(db: Session, sample_id: str, miru_profile: dict[str, obj
     return created_miru_profile
 
 
-
-
-
 def create_miru_profiles(db: Session, miru_profiles_by_sample_id: dict[str, object]):
     """
     Create multiple MIRU profile records.
@@ -441,7 +438,7 @@ def add_sample_to_cgmlst_cluster(db: Session, sample_id: str, cgmlst_cluster: di
     if sample_id not in existing_sample_ids:
         logging.warning('cannot add cgmlst cluster for a sample that does not exist...')
         return None
-        
+
     else:
         select_sample_stmt = select(Sample).where(and_(Sample.sample_id == sample_id, Sample.valid_until == None))
         sample = db.scalars(select_sample_stmt).one()
