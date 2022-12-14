@@ -351,11 +351,11 @@ def get_miru_cluster_by_sample_id(db: Session, sample_id: str):
         Sample.sample_id == sample_id
     )
 
-    miru_ids = []
+    sample_dicts = []
     for row in query_result:
-        miru_ids.append(utils.row2dict(row))
+        sample_dicts.append(utils.row2dict(row))
     
-    for item in miru_ids:
+    for item in sample_dicts:
         if item['valid_until'] is None:
             miru_cluster_id = item['miru_cluster_id']
 
@@ -409,6 +409,7 @@ def add_samples_to_cgmlst_clusters(db: Session, cgmlst_cluster: list[dict[str, o
             sample.cgmlst_cluster_id = db_cgmlst_cluster.id
             db_samples.append(sample)
             db.commit()
+            db.refresh(sample)
             
 
     #select_sample_stmt = select(Sample).where(and_(Sample.sample_id == sample_id, Sample.valid_until == None))
@@ -453,11 +454,11 @@ def get_cgmlst_cluster_by_sample_id(db: Session, sample_id: str):
         Sample.sample_id == sample_id
     )
 
-    cgmlst_ids = []
+    sample_dicts = []
     for row in query_result:
-        cgmlst_ids.append(utils.row2dict(row))
+        sample_dicts.append(utils.row2dict(row))
     
-    for item in cgmlst_ids:
+    for item in sample_dicts:
         if item['valid_until'] is None:
             cgmlst_cluster_id = item['cgmlst_cluster_id']
 
