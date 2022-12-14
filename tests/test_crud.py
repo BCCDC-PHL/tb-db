@@ -79,10 +79,13 @@ class TestCrudSample(unittest.TestCase):
         }
 
         created_sample = crud.create_sample(self.session, sample_dict)
-
+        self.assertEqual(created_sample.id,1)
+        
         result = crud.add_sample_to_cgmlst_cluster(self.session,'SAM001', cgmlst_cluster_dict)
 
         cgmlst_id = crud.get_cgmlst_cluster_by_sample_id(self.session, 'SAM001')
+
+        
         self.assertEqual(cgmlst_id,'BC300')
         self.assertEqual(result.id, 2)
 

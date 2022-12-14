@@ -410,7 +410,7 @@ def add_samples_to_cgmlst_clusters(db: Session, cgmlst_cluster: list[dict[str, o
             db_samples.append(sample)
             db.commit()
             db.refresh(sample)
-            
+
 
     #select_sample_stmt = select(Sample).where(and_(Sample.sample_id == sample_id, Sample.valid_until == None))
     #sample = db.scalars(select_sample_stmt).one()
