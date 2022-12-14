@@ -43,7 +43,7 @@ class TestCrudSample(unittest.TestCase):
         sample_dict = {
             'sample_id': 'SAM001',
             'accession': 'ACC001',
-            'collection_date': datetime.date(1970, 1, 1),
+            'collection_date': datetime.date(1970, 1, 1),          
         }
 
         created_sample = crud.create_sample(self.session, sample_dict)
@@ -51,6 +51,43 @@ class TestCrudSample(unittest.TestCase):
         self.assertIsNotNone(created_sample)
         self.assertEqual(created_sample.id, 1)
 
+    def test_get_miru_cluster(self):
+        miru_dict = {
+            'key': 'SAM001',
+            'cluster': 'BC278',
+            'collection_date': datetime.date(1970, 1, 1),
+            'acc_num':'ACC001',
+            'miru_02':'2',
+            'miru_24':'2',
+            'miru_26':'2',
+            'miru_pattern':'123456789'
+        }
+        created_sample = crud.create_miru_profile(self.session,'SAM001', miru_dict)
+        miru_id = crud.get_miru_cluster_by_sample_id(self.session, 'SAM001')
+        self.assertIsNotNone(created_sample)
+        self.assertEqual(miru_id,'BC278')
+
+    def test_get_cgmlst_cluster(self):
+        cgmlst_cluster_dict = {
+            'key': 'SAM001',
+            'cluster': 'BC300'
+        }
+        sample_dict = {
+            'sample_id': 'SAM001',
+            'accession': 'ACC001',
+            'collection_date': datetime.date(1970, 1, 1)            
+        }
+
+        created_sample = crud.create_sample(self.session, sample_dict)
+        self.assertEqual(created_sample.id,1)
+        
+        result = crud.add_sample_to_cgmlst_cluster(self.session,'SAM001', cgmlst_cluster_dict)
+
+        cgmlst_id = crud.get_cgmlst_cluster_by_sample_id(self.session, 'SAM001')
+
+        
+        self.assertEqual(cgmlst_id,'BC300')
+        self.assertEqual(result.id, 2)
 
     def test_delete_sample(self):
         sample_dict = {
