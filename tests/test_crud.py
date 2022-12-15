@@ -1,4 +1,5 @@
 import datetime
+import json
 import logging
 import os
 import unittest
@@ -10,7 +11,8 @@ import alembic
 import alembic.config
 
 import tb_db.models as models
-import tb_db.crud as crud    
+import tb_db.crud as crud
+import tb_db.utils as utils
 
 from hypothesis import settings, Phase, Verbosity, given, note, strategies as st
 from hypothesis.stateful import rule, precondition, RuleBasedStateMachine, Bundle
@@ -32,6 +34,10 @@ ASCII_SYMBOLS = [
     "}", "~", 
 ]
 
+ASCII_ACCEPTABLE_IDENTIFIER_SYMBOLS = [
+    "-", "_", ".",
+]
+
 ASCII_SPACE = [" "]
 
 connection_uri = "sqlite:///:memory:"
@@ -51,7 +57,8 @@ logging.getLogger('alembic').setLevel(logging.CRITICAL)
 
 log = logging.getLogger(__name__)
 logging.basicConfig(format = '%(asctime)s %(module)s %(levelname)s: %(message)s',
-                    datefmt = '%Y-%m-%d %I:%M:%S %p', level = logging.DEBUG)
+                    datefmt = '%Y-%m-%dT%H:%M:%S',
+                    level = logging.DEBUG)
 
 class TestCrudSample(unittest.TestCase):
 
@@ -146,7 +153,10 @@ class SampleCrudMachine(RuleBasedStateMachine):
 
     Samples = Bundle('samples')
 
-    @rule(target=Samples, sample_id=st.text(alphabet=ASCII_ALPHANUMERIC), accession=st.text(alphabet=ASCII_ALPHANUMERIC), collection_date=st.dates())
+    @rule(target=Samples,
+          sample_id=st.text(alphabet=(ASCII_ALPHANUMERIC + ASCII_ACCEPTABLE_IDENTIFIER_SYMBOLS)),
+          accession=st.text(alphabet=ASCII_ALPHANUMERIC),
+          collection_date=st.dates(min_value=datetime.date(1800,1,1), max_value=datetime.date(2200,1,1)))
     def create_sample(self, sample_id, accession, collection_date):
         sample_dict = {
             'sample_id': sample_id,
@@ -155,11 +165,32 @@ class SampleCrudMachine(RuleBasedStateMachine):
         }
 
         created_sample = crud.create_sample(self.session, sample_dict)
+        
         if created_sample:
-            log.debug("Created sample: \"" + created_sample.sample_id + "\"")
+            json_serializable_sample = utils.row2dict(created_sample)
+            date_fields = [
+                'collection_date',
+                'valid_until',
+                'created_at',
+            ]
+            for date_field in date_fields: 
+                json_serializable_sample[date_field] = str(json_serializable_sample[date_field])
+            log.debug("Created sample: " + json.dumps(json_serializable_sample))
         else:
             log.debug("Sample creation for sample_id: \"" + sample_id + "\" returned None")
-        assert(created_sample == None or created_sample.sample_id == sample_id)
+            existing_db_sample = crud.get_sample(self.session, sample_id)
+            if existing_db_sample is not None:
+                log.debug("Sample \"" + sample_id + "\" exists in db.")
+            else:
+                log.debug("Sample \"" + sample_id + "\" does not exist in db.")
+        note(utils.row2dict(created_sample))
+        if created_sample is not None:
+            all_fields_match_after_insertion = all([
+                created_sample.sample_id == sample_id,
+                created_sample.accession == accession,
+                created_sample.collection_date == collection_date,
+            ])
+        assert(created_sample == None or all_fields_match_after_insertion)
         return created_sample
 
     @rule(sample=Samples.filter(lambda x: x is not None))
