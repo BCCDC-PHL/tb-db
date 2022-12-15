@@ -145,11 +145,11 @@ def create_cgmlst_allele_profile(db: Session, cgmlst_allele_profile: dict[str, o
         percent_called = cgmlst_allele_profile['percent_called'],
     )
 
-    db.add(db_cgmlst_profile)
+    db.add(db_cgmlst_allele_profile)
     db.commit()
-    db.refresh(db_cgmlst_profile)
+    db.refresh(db_cgmlst_allele_profile)
 
-    return db_cgmlst_profile
+    return db_cgmlst_allele_profile
 
 
 def create_cgmlst_allele_profiles(db: Session, cgmlst_allele_profiles: list[dict[str, object]]):
