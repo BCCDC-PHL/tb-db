@@ -7,7 +7,11 @@ setup(
     packages=find_packages(),
     scripts=[],
     package_data={},
-    install_requires=["psycopg2-binary==2.9.3", "sqlalchemy==1.4.40", "alembic==1.8.0"],
+    install_requires=[
+        "psycopg2-binary==2.9.3",
+        "sqlalchemy==1.4.40",
+        "alembic==1.8.0"
+    ],
     description="",
     url="",
     author="",
@@ -18,6 +22,7 @@ setup(
     extra_requires={
         "dev": [
             "pytest>=7.1.2",
+            "hypothesis==6.61.0",
         ]
     },
 )

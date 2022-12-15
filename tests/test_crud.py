@@ -12,23 +12,52 @@ import alembic.config
 import tb_db.models as models
 import tb_db.crud as crud    
 
+from hypothesis import settings, Phase, Verbosity, given, note, strategies as st
+from hypothesis.stateful import rule, precondition, RuleBasedStateMachine, Bundle
+
+ASCII_ALPHANUMERIC = [
+    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+    "A", "B", "C", "D", "E", "F", "G", "H", "I", "J",
+    "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T",
+    "U", "V", "W", "X", "Y", "Z",
+    "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
+    "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
+    "u", "v", "w", "x", "y", "z",
+]
+
+ASCII_SYMBOLS = [
+    "!", '"', "#", "$", "%", "&", "'", "(", ")", "*",
+    "+", ",", "-", ".", "/", ":", ";", "<", "=", ">",
+    "?", "@", "[", "\\", "]", "^", "_", "`", "{", "|",
+    "}", "~", 
+]
+
+ASCII_SPACE = [" "]
+
+connection_uri = "sqlite:///:memory:"
+
+project_root_path = os.path.join(os.path.dirname(__file__), '..')
+alembic_dir_path = os.path.join(project_root_path, 'alembic')
+alembic_config_file_path = os.path.join(project_root_path, "alembic.ini")
+alembic_cfg = alembic.config.Config(file_=alembic_config_file_path)
+alembic_cfg.set_main_option('script_location', alembic_dir_path)
+alembic_cfg.set_main_option('sqlalchemy.url', connection_uri)
+
+# We do this to prevent the logging.config.fileConfig() method
+# from being called in alembic/env.py.
+# This gives us better control of logging while testing.
+alembic_cfg.config_file_name = None
+logging.getLogger('alembic').setLevel(logging.CRITICAL)
+
+log = logging.getLogger(__name__)
+logging.basicConfig(format = '%(asctime)s %(module)s %(levelname)s: %(message)s',
+                    datefmt = '%Y-%m-%d %I:%M:%S %p', level = logging.DEBUG)
+
 class TestCrudSample(unittest.TestCase):
 
     def setUp(self):
-        self.logger = logging.getLogger(__name__)
-        logging.basicConfig(format = '%(asctime)s %(module)s %(levelname)s: %(message)s',
-                            datefmt = '%m/%d/%Y %I:%M:%S %p', level = logging.INFO)
-
-        connection_uri = "sqlite:///:memory:"
-
-        project_root_path = os.path.join(os.path.dirname(__file__), '..')
-        alembic_dir_path = os.path.join(project_root_path, 'alembic')
-        alembic_config_file_path = os.path.join(project_root_path, "alembic.ini")
-        alembic_cfg = alembic.config.Config(file_=alembic_config_file_path)
-        alembic_cfg.set_main_option('script_location', alembic_dir_path)
-        alembic_cfg.set_main_option('sqlalchemy.url', connection_uri)
         alembic.command.upgrade(alembic_cfg, 'head')
-        
+
         self.engine = create_engine(connection_uri)
         self.session = Session(self.engine)
         models.Base.metadata.create_all(self.engine)
@@ -38,7 +67,7 @@ class TestCrudSample(unittest.TestCase):
         models.Base.metadata.drop_all(self.engine)
 
 
-    def test_create_sample(self):
+    def test_create_sample_unit_0(self):
         
         sample_dict = {
             'sample_id': 'SAM001',
@@ -50,6 +79,7 @@ class TestCrudSample(unittest.TestCase):
 
         self.assertIsNotNone(created_sample)
         self.assertEqual(created_sample.id, 1)
+
 
     def test_get_miru_cluster(self):
         miru_dict = {
@@ -104,3 +134,42 @@ class TestCrudSample(unittest.TestCase):
             self.assertEqual(sample_id, deleted_sample_record.sample_id)
 
         
+class SampleCrudMachine(RuleBasedStateMachine):
+    def __init__(self):
+        super(SampleCrudMachine, self).__init__()
+        
+        alembic.command.upgrade(alembic_cfg, 'head')
+        
+        self.engine = create_engine(connection_uri)
+        self.session = Session(self.engine)
+        models.Base.metadata.create_all(self.engine)
+
+    Samples = Bundle('samples')
+
+    @rule(target=Samples, sample_id=st.text(alphabet=ASCII_ALPHANUMERIC), accession=st.text(alphabet=ASCII_ALPHANUMERIC), collection_date=st.dates())
+    def create_sample(self, sample_id, accession, collection_date):
+        sample_dict = {
+            'sample_id': sample_id,
+            'accession': accession,
+            'collection_date': collection_date,
+        }
+
+        created_sample = crud.create_sample(self.session, sample_dict)
+        if created_sample:
+            log.debug("Created sample: \"" + created_sample.sample_id + "\"")
+        else:
+            log.debug("Sample creation for sample_id: \"" + sample_id + "\" returned None")
+        assert(created_sample == None or created_sample.sample_id == sample_id)
+        return created_sample
+
+    @rule(sample=Samples.filter(lambda x: x is not None))
+    def delete_sample(self, sample):
+        log.debug("Attempting to delete sample: \"" + sample.sample_id + "\"")
+        deleted_samples = crud.delete_sample(self.session, sample.sample_id)
+        log.debug("Deleted samples: " + str([sample.sample_id for sample in deleted_samples]))
+        for deleted_sample in deleted_samples:
+            assert(deleted_sample.sample_id == sample.sample_id)
+            assert(deleted_sample.accession == sample.accession)
+
+
+TestSampleCrudMachine = SampleCrudMachine.TestCase

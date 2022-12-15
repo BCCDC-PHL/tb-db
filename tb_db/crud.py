@@ -15,17 +15,26 @@ def create_sample(db: Session, sample: dict[str, object]):
 
     :param db: Database session.
     :type db: sqlalchemy.orm.Session
-    :param sample: Dictionary representing a sample. Must include keys `sample_id` and `collection_date`
+    :param sample: Dictionary representing a sample. Must include keys `sample_id`,
+                   `accession`, and `collection_date`.
     :type sample: dict[str, object]
     :return: Created sample
-    :rtype: models.Sample
+    :rtype: models.Sample|NoneType
     """
     existing_samples = db.query(Sample).all()
     existing_sample_ids = set([sample.sample_id for sample in existing_samples])
 
     db_sample = None
 
-    if sample['sample_id'] not in existing_sample_ids:
+    conditions_for_insertion = {
+        "sample_id_not_in_db": sample['sample_id'] not in existing_sample_ids,
+        "sample_id_not_empty_string": sample['sample_id'] != '',
+        "accession_not_empty_string": sample['accession'] != '',
+    }
+
+    conditions_met = conditions_for_insertion.values()
+
+    if all(conditions_met):
         db_sample = Sample(
             sample_id = sample['sample_id'],
             collection_date = sample['collection_date'],
