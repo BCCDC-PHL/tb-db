@@ -27,6 +27,10 @@ ASCII_ALPHANUMERIC = [
     "u", "v", "w", "x", "y", "z",
 ]
 
+ASCII_NUMERIC = [
+    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+]
+
 ASCII_SYMBOLS = [
     "!", '"', "#", "$", "%", "&", "'", "(", ")", "*",
     "+", ",", "-", ".", "/", ":", ";", "<", "=", ">",
@@ -193,6 +197,7 @@ class SampleCrudMachine(RuleBasedStateMachine):
         assert(created_sample == None or all_fields_match_after_insertion)
         return created_sample
 
+
     @rule(sample=Samples.filter(lambda x: x is not None))
     def delete_sample(self, sample):
         log.debug("Attempting to delete sample: \"" + sample.sample_id + "\"")
@@ -203,4 +208,99 @@ class SampleCrudMachine(RuleBasedStateMachine):
             assert(deleted_sample.accession == sample.accession)
 
 
+class CgmlstAlleleProfileCrudMachine(RuleBasedStateMachine):
+    def __init__(self):
+        super(CgmlstAlleleProfileCrudMachine, self).__init__()
+        
+        alembic.command.upgrade(alembic_cfg, 'head')
+        
+        self.engine = create_engine(connection_uri)
+        self.session = Session(self.engine)
+        models.Base.metadata.create_all(self.engine)
+
+    # TODO: The section below copied from the SampleCrudMachine class.
+    #       Find a way to abstract it out(?)
+    Samples = Bundle('samples')
+
+    @rule(target=Samples,
+          sample_id=st.text(alphabet=(ASCII_ALPHANUMERIC + ASCII_ACCEPTABLE_IDENTIFIER_SYMBOLS)),
+          accession=st.text(alphabet=ASCII_ALPHANUMERIC),
+          collection_date=st.dates(min_value=datetime.date(1800,1,1), max_value=datetime.date(2200,1,1)))
+    def create_sample(self, sample_id, accession, collection_date):
+        sample_dict = {
+            'sample_id': sample_id,
+            'accession': accession,
+            'collection_date': collection_date,
+        }
+
+        created_sample = crud.create_sample(self.session, sample_dict)
+        
+        if created_sample:
+            json_serializable_sample = utils.row2dict(created_sample)
+            date_fields = [
+                'collection_date',
+                'valid_until',
+                'created_at',
+            ]
+            for date_field in date_fields: 
+                json_serializable_sample[date_field] = str(json_serializable_sample[date_field])
+            log.debug("Created sample: " + json.dumps(json_serializable_sample))
+        else:
+            json_serializable_sample = created_sample
+            log.debug("Sample creation for sample_id: \"" + sample_id + "\" returned None")
+            existing_db_sample = crud.get_sample(self.session, sample_id)
+            if existing_db_sample is not None:
+                log.debug("Sample \"" + sample_id + "\" exists in db.")
+            else:
+                log.debug("Sample \"" + sample_id + "\" does not exist in db.")
+        note(json_serializable_sample)
+        if created_sample is not None:
+            all_fields_match_after_insertion = all([
+                created_sample.sample_id == sample_id,
+                created_sample.accession == accession,
+                created_sample.collection_date == collection_date,
+            ])
+        assert(created_sample == None or all_fields_match_after_insertion)
+        return created_sample
+
+    # TODO: The section above is copied from the SampleCrudMachine class.
+    #       Find a way to abstract it out(?)
+
+
+    @rule(sample=Samples.filter(lambda x: x is not None),
+          profile=st.lists(st.text(ASCII_NUMERIC + ['-'], min_size=1, max_size=1), min_size=4, max_size=4))
+    def create_cgmlst_profile(self, sample, profile):
+        sample_id = sample.sample_id
+        locus_ids = [
+            "Rv0001",
+            "Rv0002",
+            "Rv0003",
+            "Rv0004",
+        ]
+        num_alleles_called = sum([0 if x == '-' else 1 for x in profile])
+        percent_called = num_alleles_called / len(profile)
+        profile_dict = {
+            'sample_id': sample_id,
+            'percent_called': percent_called,
+            'profile': {}
+        }
+        for idx, locus_id in enumerate(locus_ids):
+            profile_dict['profile'][locus_id] = profile[idx]
+        
+        created_cgmlst_profile = crud.create_cgmlst_allele_profile(self.session, profile_dict)
+        json_serializable_cgmlst_profile = utils.row2dict(created_cgmlst_profile)
+        date_fields = [
+            'valid_until',
+            'created_at',
+        ]
+        for date_field in date_fields: 
+            json_serializable_cgmlst_profile[date_field] = str(json_serializable_cgmlst_profile[date_field])
+        log.debug("Created cgMLST Profile for sample \"" + sample_id + "\": " + json.dumps(json_serializable_cgmlst_profile))
+
+        note(json_serializable_cgmlst_profile)
+        assert(created_cgmlst_profile.sample_id == sample.id)
+          
+
+        
 TestSampleCrudMachine = SampleCrudMachine.TestCase
+TestCgmlstAlleleProfileCrudMachine = CgmlstAlleleProfileCrudMachine.TestCase
