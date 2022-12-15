@@ -23,4 +23,6 @@ jobs:
           pip install .
           pip install hypothesis
       - name: Run tests
-        run: ./test.sh
+        run: |
+          mkdir -p alembic/versions
+          ./test.sh
