@@ -37,6 +37,7 @@ def create_sample(db: Session, sample: dict[str, object]):
     if all(conditions_met):
         db_sample = Sample(
             sample_id = sample['sample_id'],
+            accession = sample['accession'],
             collection_date = sample['collection_date'],
         )
         db.add(db_sample)
@@ -75,6 +76,23 @@ def create_samples(db: Session, samples: list[dict[str, object]]):
         db.refresh(db_sample)
 
     return db_samples
+
+
+def get_sample(db: Session, sample_id: str):
+    """
+    Get current valid database record for a sample.
+
+    :param db: Database session
+    :type db: sqlalchemy.orm.Session
+    :param sample_id: Sample ID
+    :type sample_id: str
+    :return: Current valid database record for the sample.
+    :rtype: models.Sample|NoneType
+    """
+    sample_record = db.query(Sample).where(and_(Sample.sample_id == sample_id,
+                                                Sample.valid_until == None)).one_or_none()
+
+    return sample_record
 
 
 def delete_sample(db: Session, sample_id: str):
