@@ -1,2 +1,2 @@
-file:///home/runner/work/tb-db/tb-db --no-index
+file:///github/workspace --no-index
 sphinx-rtd-theme==1.1.1
