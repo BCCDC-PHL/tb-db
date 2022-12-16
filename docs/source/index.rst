@@ -28,7 +28,7 @@ entities from the database.
    :members:
 
 tb_db.models
-==========
+============
 This module defines the entities to be stored in the database, and their
 relationships with one another.
 
@@ -36,7 +36,7 @@ relationships with one another.
    :members:
 
 tb_db.parsers
-==========
+=============
 This module includes methods used to parse various files to prepare them for
 input to the database.
       
