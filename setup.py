@@ -23,6 +23,8 @@ setup(
         "dev": [
             "pytest>=7.1.2",
             "hypothesis==6.61.0",
+            "sphinx==5.3.0",
+            "sphinx-rtd-theme==1.1.1",
         ]
     },
 )
