@@ -18,7 +18,7 @@ jobs:
     - uses: actions/upload-artifact@v1
       with:
         name: DocumentationHTML
-        path: docs/build/html
+        path: docs/_build/html
     - name: Commit documentation changes
       run: |
         git clone https://github.com/BCCDC-PHL/tb-db.git --branch gh-pages --single-branch gh-pages
