@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BCCDC-PHL TB Genomics Database &mdash; BCCDC-PHL TB Genomics Database  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="#" class="icon icon-home"> BCCDC-PHL TB Genomics Database
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">BCCDC-PHL TB Genomics Database</a></li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+<li><a class="reference internal" href="#tb-db-crud">tb_db.crud</a></li>
+<li><a class="reference internal" href="#tb-db-models">tb_db.models</a><ul>
+<li><a class="reference internal" href="#tb_db.models.CgmlstAlleleProfile"><code class="docutils literal notranslate"><span class="pre">CgmlstAlleleProfile</span></code></a><ul>
+<li><a class="reference internal" href="#tb_db.models.CgmlstAlleleProfile.created_at"><code class="docutils literal notranslate"><span class="pre">CgmlstAlleleProfile.created_at</span></code></a></li>
+<li><a class="reference internal" href="#tb_db.models.CgmlstAlleleProfile.id"><code class="docutils literal notranslate"><span class="pre">CgmlstAlleleProfile.id</span></code></a></li>
+<li><a class="reference internal" href="#tb_db.models.CgmlstAlleleProfile.valid_until"><code class="docutils literal notranslate"><span class="pre">CgmlstAlleleProfile.valid_until</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tb_db.models.CgmlstScheme"><code class="docutils literal notranslate"><span class="pre">CgmlstScheme</span></code></a><ul>
+<li><a class="reference internal" href="#tb_db.models.CgmlstScheme.created_at"><code class="docutils literal notranslate"><span class="pre">CgmlstScheme.created_at</span></code></a></li>
+<li><a class="reference internal" href="#tb_db.models.CgmlstScheme.id"><code class="docutils literal notranslate"><span class="pre">CgmlstScheme.id</span></code></a></li>
+<li><a class="reference internal" href="#tb_db.models.CgmlstScheme.valid_until"><code class="docutils literal notranslate"><span class="pre">CgmlstScheme.valid_until</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tb_db.models.Library"><code class="docutils literal notranslate"><span class="pre">Library</span></code></a><ul>
+<li><a class="reference internal" href="#tb_db.models.Library.id"><code class="docutils literal notranslate"><span class="pre">Library.id</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tb_db.models.MiruProfile"><code class="docutils literal notranslate"><span class="pre">MiruProfile</span></code></a><ul>
+<li><a class="reference internal" href="#tb_db.models.MiruProfile.created_at"><code class="docutils literal notranslate"><span class="pre">MiruProfile.created_at</span></code></a></li>
+<li><a class="reference internal" href="#tb_db.models.MiruProfile.id"><code class="docutils literal notranslate"><span class="pre">MiruProfile.id</span></code></a></li>
+<li><a class="reference internal" href="#tb_db.models.MiruProfile.valid_until"><code class="docutils literal notranslate"><span class="pre">MiruProfile.valid_until</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tb_db.models.camel_to_snake"><code class="docutils literal notranslate"><span class="pre">camel_to_snake()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tb-db-parsers">tb_db.parsers</a></li>
+<li><a class="reference internal" href="#tb-db-util">tb_db.util</a></li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">BCCDC-PHL TB Genomics Database</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home"></a></li>
+      <li class="breadcrumb-item active">BCCDC-PHL TB Genomics Database</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="bccdc-phl-tb-genomics-database">
+<h1>BCCDC-PHL TB Genomics Database<a class="headerlink" href="#bccdc-phl-tb-genomics-database" title="Permalink to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this heading"></a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+<div class="section" id="tb-db-crud">
+<h1>tb_db.crud<a class="headerlink" href="#tb-db-crud" title="Permalink to this heading"></a></h1>
+<p>This module includes methods used to Create, Read, Update and Delete (CRUD)
+entities from the database.</p>
+</div>
+<div class="section" id="tb-db-models">
+<h1>tb_db.models<a class="headerlink" href="#tb-db-models" title="Permalink to this heading"></a></h1>
+<p>This module defines the entities to be stored in the database, and their
+relationships with one another.</p>
+<span class="target" id="module-tb_db.models"></span><dl class="py class">
+<dt class="sig sig-object py" id="tb_db.models.CgmlstAlleleProfile">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tb_db.models.</span></span><span class="sig-name descname"><span class="pre">CgmlstAlleleProfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tb_db.models.CgmlstAlleleProfile" title="Permalink to this definition"></a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="tb_db.models.CgmlstAlleleProfile.created_at">
+<span class="sig-name descname"><span class="pre">created_at</span></span><a class="headerlink" href="#tb_db.models.CgmlstAlleleProfile.created_at" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tb_db.models.CgmlstAlleleProfile.id">
+<span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#tb_db.models.CgmlstAlleleProfile.id" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tb_db.models.CgmlstAlleleProfile.valid_until">
+<span class="sig-name descname"><span class="pre">valid_until</span></span><a class="headerlink" href="#tb_db.models.CgmlstAlleleProfile.valid_until" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tb_db.models.CgmlstScheme">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tb_db.models.</span></span><span class="sig-name descname"><span class="pre">CgmlstScheme</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tb_db.models.CgmlstScheme" title="Permalink to this definition"></a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="tb_db.models.CgmlstScheme.created_at">
+<span class="sig-name descname"><span class="pre">created_at</span></span><a class="headerlink" href="#tb_db.models.CgmlstScheme.created_at" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tb_db.models.CgmlstScheme.id">
+<span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#tb_db.models.CgmlstScheme.id" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tb_db.models.CgmlstScheme.valid_until">
+<span class="sig-name descname"><span class="pre">valid_until</span></span><a class="headerlink" href="#tb_db.models.CgmlstScheme.valid_until" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tb_db.models.Library">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tb_db.models.</span></span><span class="sig-name descname"><span class="pre">Library</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tb_db.models.Library" title="Permalink to this definition"></a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="tb_db.models.Library.id">
+<span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#tb_db.models.Library.id" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tb_db.models.MiruProfile">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tb_db.models.</span></span><span class="sig-name descname"><span class="pre">MiruProfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tb_db.models.MiruProfile" title="Permalink to this definition"></a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="tb_db.models.MiruProfile.created_at">
+<span class="sig-name descname"><span class="pre">created_at</span></span><a class="headerlink" href="#tb_db.models.MiruProfile.created_at" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tb_db.models.MiruProfile.id">
+<span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#tb_db.models.MiruProfile.id" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tb_db.models.MiruProfile.valid_until">
+<span class="sig-name descname"><span class="pre">valid_until</span></span><a class="headerlink" href="#tb_db.models.MiruProfile.valid_until" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tb_db.models.camel_to_snake">
+<span class="sig-prename descclassname"><span class="pre">tb_db.models.</span></span><span class="sig-name descname"><span class="pre">camel_to_snake</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#tb_db.models.camel_to_snake" title="Permalink to this definition"></a></dt>
+<dd><p>Converts camelCase to snake_case
+:param s: String to convert
+:type s: str
+:return: snake_case equivalent of camelCase input
+:rtype: str</p>
+</dd></dl>
+
+</div>
+<div class="section" id="tb-db-parsers">
+<h1>tb_db.parsers<a class="headerlink" href="#tb-db-parsers" title="Permalink to this heading"></a></h1>
+<p>This module includes methods used to parse various files to prepare them for
+input to the database.</p>
+</div>
+<div class="section" id="tb-db-util">
+<h1>tb_db.util<a class="headerlink" href="#tb-db-util" title="Permalink to this heading"></a></h1>
+<p>This module includes some useful utility functions that may be useful in other
+modules.</p>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Dan Fornika, Sherrie Wang, James Zlosnik.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
