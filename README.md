@@ -8,7 +8,7 @@ Currently prototype/demo stage. Not ready for production.
 
 Clone the repo and navigate to the repo directory
 ```
-git clone git@github.com:dfornika/tb-db.git
+git clone git@github.com:BCCDC-PHL/tb-db.git
 cd tb-db
 ```
 
