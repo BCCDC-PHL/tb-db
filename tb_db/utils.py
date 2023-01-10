@@ -8,8 +8,13 @@ def camel_to_snake(name):
 
 # https://stackoverflow.com/a/1960546
 def row2dict(row):
+    if row is None:
+        return None
+
     d = {}
     for column in row.__table__.columns:
         d[column.name] = getattr(row, column.name)
+
+    return d
 
     return d

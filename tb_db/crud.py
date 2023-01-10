@@ -15,19 +15,29 @@ def create_sample(db: Session, sample: dict[str, object]):
 
     :param db: Database session.
     :type db: sqlalchemy.orm.Session
-    :param sample: Dictionary representing a sample. Must include keys `sample_id` and `collection_date`
+    :param sample: Dictionary representing a sample. Must include keys `sample_id`,
+                   `accession`, and `collection_date`.
     :type sample: dict[str, object]
     :return: Created sample
-    :rtype: models.Sample
+    :rtype: models.Sample|NoneType
     """
     existing_samples = db.query(Sample).all()
     existing_sample_ids = set([sample.sample_id for sample in existing_samples])
 
     db_sample = None
 
-    if sample['sample_id'] not in existing_sample_ids:
+    conditions_for_insertion = {
+        "sample_id_not_in_db": sample['sample_id'] not in existing_sample_ids,
+        "sample_id_not_empty_string": sample['sample_id'] != '',
+        "accession_not_empty_string": sample['accession'] != '',
+    }
+
+    conditions_met = conditions_for_insertion.values()
+
+    if all(conditions_met):
         db_sample = Sample(
             sample_id = sample['sample_id'],
+            accession = sample['accession'],
             collection_date = sample['collection_date'],
         )
         db.add(db_sample)
@@ -66,6 +76,23 @@ def create_samples(db: Session, samples: list[dict[str, object]]):
         db.refresh(db_sample)
 
     return db_samples
+
+
+def get_sample(db: Session, sample_id: str):
+    """
+    Get current valid database record for a sample.
+
+    :param db: Database session
+    :type db: sqlalchemy.orm.Session
+    :param sample_id: Sample ID
+    :type sample_id: str
+    :return: Current valid database record for the sample.
+    :rtype: models.Sample|NoneType
+    """
+    sample_record = db.query(Sample).where(and_(Sample.sample_id == sample_id,
+                                                Sample.valid_until == None)).one_or_none()
+
+    return sample_record
 
 
 def delete_sample(db: Session, sample_id: str):
@@ -118,11 +145,11 @@ def create_cgmlst_allele_profile(db: Session, cgmlst_allele_profile: dict[str, o
         percent_called = cgmlst_allele_profile['percent_called'],
     )
 
-    db.add(db_cgmlst_profile)
+    db.add(db_cgmlst_allele_profile)
     db.commit()
-    db.refresh(db_cgmlst_profile)
+    db.refresh(db_cgmlst_allele_profile)
 
-    return db_cgmlst_profile
+    return db_cgmlst_allele_profile
 
 
 def create_cgmlst_allele_profiles(db: Session, cgmlst_allele_profiles: list[dict[str, object]]):
