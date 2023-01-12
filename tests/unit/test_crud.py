@@ -47,7 +47,11 @@ class TestCrudSample(unittest.TestCase):
         models.Base.metadata.drop_all(self.engine)
 
 
-    def test_create_sample_unit_0(self):
+    def test_create_sample(self):
+        """
+        Test that a sample can be created, and when a single sample is inserted
+        into an empty database, it is assigned a primary key id of 1.
+        """
         
         sample_dict = {
             'sample_id': 'SAM001',
@@ -60,7 +64,39 @@ class TestCrudSample(unittest.TestCase):
         self.assertIsNotNone(created_sample)
         self.assertEqual(created_sample.id, 1)
 
+
+    def test_create_miru_profile(self):
+        """
+        Test that the foreign key to the sample is kept consistent
+        after adding a miru profile to a sample.
+        """
+        sample_dict = {
+            'sample_id': 'SAM001',
+            'accession': 'ACC001',
+            'collection_date': datetime.date(1970, 1, 1),          
+        }
+
+        miru_profile_dict = {
+            'key': 'SAM001',
+            'cluster': 'BC278',
+            'acc_num':'ACC001',
+            'miru_02':'1',
+            'miru_24':'2',
+            'miru_26':'3',
+            'miru_pattern':'123'
+        }
+
+        sample_before_adding_miru_profile = crud.create_sample(self.session, sample_dict)
+        miru_profile = crud.create_miru_profile(self.session, sample_dict['sample_id'], miru_profile_dict)
+        sample_after_adding_miru_profile = crud.get_sample(self.session, sample_dict['sample_id'])
+        
+        self.assertEqual(miru_profile.sample_id, sample_after_adding_miru_profile.id)
+        
+
     def test_get_miru_cluster(self):
+        """
+        Test that a MIRU cluster can be retrieved from the database.
+        """
         miru_dict = {
             'key': 'SAM001',
             'cluster': 'BC278',
@@ -71,12 +107,16 @@ class TestCrudSample(unittest.TestCase):
             'miru_26':'2',
             'miru_pattern':'123456789'
         }
-        created_sample = crud.create_miru_profile(self.session,'SAM001', miru_dict)
+        created_miru_profile = crud.create_miru_profile(self.session,'SAM001', miru_dict)
         miru_id = crud.get_miru_cluster_by_sample_id(self.session, 'SAM001')
-        self.assertIsNotNone(created_sample)
+        self.assertIsNotNone(created_miru_profile)
         self.assertEqual(miru_id,'BC278')
 
+
     def test_get_cgmlst_cluster(self):
+        """
+        Test that a cgMLST cluster can be retrieved from the database.
+        """
         cgmlst_cluster_dict = {
             'key': 'SAM001',
             'cluster': 'BC300'
@@ -98,7 +138,11 @@ class TestCrudSample(unittest.TestCase):
         self.assertEqual(cgmlst_id,'BC300')
         self.assertEqual(result.id, 2)
 
+
     def test_delete_sample(self):
+        """
+        Test that a sample can be deleted from the database.
+        """
         sample_dict = {
             'sample_id': 'SAM001',
             'accession': 'ACC001',
