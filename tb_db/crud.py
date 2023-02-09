@@ -348,7 +348,7 @@ def create_miru_profiles(db: Session, miru_profiles_by_sample_id: dict[str, obje
             sample_id = sample.id,
             percent_called = percent_called,
             profile_by_position = json.dumps(profile_by_position),
-            miru_pattern = miru_profile['miru_pattern'],
+            miru_pattern = miru_profile['miru_pattern']
         )
         select_miru_profile_stmt = select(MiruProfile).where(and_(MiruProfile.sample_id == sample.id, MiruProfile.valid_until == None))
         existing_profile_for_sample = db.scalars(select_miru_profile_stmt).one_or_none()
@@ -496,3 +496,23 @@ def get_cgmlst_cluster_by_sample_id(db: Session, sample_id: str):
 
 
     return cgmlst_cluster_code
+
+#update parent's link to new child id when old child is invalidated and a new child with new sample id is created
+def update_link_foreign_keys(db:Session, sampleid, parent_db, child_db):
+
+    #child samples are all samples in the samples table where sample_id is 22s393
+    all_child_sample = db.query(child_db).where(child_db.sample_id == sampleid)
+    valid_id = all_child_sample.where(child_db.valid_until==None).one_or_none().id
+    sample_dicts = []
+    for row in all_child_sample:
+        sample_dicts.append(utils.row2dict(row))
+    
+    for item in sample_dicts:
+        parent_sample = db.query(parent_db).where(parent_db.sample_id == item['id']).one_or_none()
+        if parent_sample is not None:
+            parent_sample.sample_id = valid_id
+            db.commit()
+            db.refresh(parent_sample)
+            break
+
+

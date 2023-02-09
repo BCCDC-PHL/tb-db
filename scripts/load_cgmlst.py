@@ -11,6 +11,7 @@ import tb_db.parsers as parsers
 import tb_db.crud as crud
 
 from tb_db.models import Sample
+from tb_db.models import MiruProfile
 
 
 def main(args):
@@ -31,6 +32,8 @@ def main(args):
         stmt = select(Sample).where(Sample.id == profile.sample_id)
         sample = session.scalars(stmt).one()
         print("Created profile for sample: " + sample.sample_id)
+        print("Updating Parent links..")
+        crud.update_link_foreign_keys(session,sample.sample_id, MiruProfile,Sample)
 
 
 if __name__ == '__main__':
