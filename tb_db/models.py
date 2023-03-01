@@ -39,32 +39,32 @@ class Base:
 Base = declarative_base(cls=Base)
 
 
-@declarative_mixin
-class HistoryMixin:
-    created_at = Column(DateTime, default=func.now())
-    valid_until = Column(DateTime, default=None)
-
-    def new_version(self, session):
-        # invalidate current version - generate an update
-        old_id = self.id
-        session.query(self.__class__).filter_by(id=old_id).update(
-            values=dict(valid_until=func.now()), synchronize_session=False
-        )
-
-        # make us transient (removes persistent identity)
-        # make this an INSERT
-        make_transient(self)
-        self.id = None
-
-        # set created_at and valid_until, which means we have a new PK.
-        self.created_at = func.now()
-        self.valid_until = None
+#@declarative_mixin
+#class HistoryMixin:
+#    created_at = Column(DateTime, default=func.now())
+#    valid_until = Column(DateTime, default=None)
+#
+#    def new_version(self, session):
+#        # invalidate current version - generate an update
+#        old_id = self.id
+#        session.query(self.__class__).filter_by(id=old_id).update(
+#            values=dict(valid_until=func.now()), synchronize_session=False
+#        )
+#
+#        # make us transient (removes persistent identity)
+#        # make this an INSERT
+#        make_transient(self)
+#        self.id = None
+#
+#        # set created_at and valid_until, which means we have a new PK.
+#        self.created_at = func.now()
+#        self.valid_until = None
 
 
 @event.listens_for(Session, "before_flush")
 def before_flush(session, flush_context, instances):
     for instance in session.dirty:
-        if not isinstance(instance, HistoryMixin):
+        if not isinstance(instance):
             continue
         if not session.is_modified(instance):
             continue
@@ -79,21 +79,23 @@ def before_flush(session, flush_context, instances):
         session.add(instance)
 
 
-class Sample(Base, HistoryMixin):
+class Sample(Base):
 
     sample_id = Column(String)
     accession = Column(String)
     collection_date = Column(Date)
 
-    cgmlst_cluster_id = Column(
-        Integer,
-        ForeignKey("cgmlst_cluster.id"),
-        nullable=True,
-    )
-    miru_cluster_id = Column(Integer, ForeignKey("miru_cluster.id"), nullable=True)
+    #cgmlst_cluster_id = Column(
+    #    Integer,
+    #    ForeignKey("cgmlst_cluster.id"),
+    #    nullable=True,
+    #)
+    #miru_cluster_id = Column(Integer, ForeignKey("miru_cluster.id"), nullable=True)
 
-    cgmlst_cluster = relationship("CgmlstCluster", back_populates="samples")
-    miru_cluster = relationship("MiruCluster", back_populates="samples")
+    #cgmlst_cluster = relationship("CgmlstCluster", back_populates="samples")
+    #miru_cluster = relationship("MiruCluster", back_populates="samples")
+
+
 
 
 class Library(Base):
@@ -105,7 +107,7 @@ class Library(Base):
     library_id = Column(String)
 
 
-class CgmlstScheme(Base, HistoryMixin):
+class CgmlstScheme(Base):
     """
     """
 
@@ -114,7 +116,7 @@ class CgmlstScheme(Base, HistoryMixin):
     num_loci = Column(Integer)
 
 
-class CgmlstAlleleProfile(Base, HistoryMixin):
+class CgmlstAlleleProfile(Base):
     """
     """
 
@@ -124,7 +126,7 @@ class CgmlstAlleleProfile(Base, HistoryMixin):
     profile = Column(JSON)
 
 
-class MiruProfile(Base, HistoryMixin):
+class MiruProfile(Base):
     """
     """
 
@@ -134,18 +136,32 @@ class MiruProfile(Base, HistoryMixin):
     miru_pattern = Column(String)
 
 
-class CgmlstCluster(Base, HistoryMixin):
+class CgmlstCluster(Base):
 
     cluster_id = Column(String)
 
-    samples = relationship(
-        "Sample", back_populates="cgmlst_cluster", cascade="all, delete-orphan"
-    )
+    #samples_cgmlst_cluster = relationship(
+    #    "SampleCgmlstCluster", back_populates="cgmlst_cluster", cascade="all, delete-orphan"
+    #)
 
 
-class MiruCluster(Base, HistoryMixin):
+class MiruCluster(Base):
 
     cluster_id = Column(String)
-    samples = relationship(
-        "Sample", back_populates="miru_cluster", cascade="all, delete-orphan"
-    )
+    #samples_miru_cluster = relationship(
+    #    "SampleMiruCluster", back_populates="miru_cluster", cascade="all, delete-orphan"
+    #)
+
+
+class SampleCgmlstCluster(Base):
+    sample_id = Column(Integer, ForeignKey("sample.id"), nullable=False)
+
+    cluster_id = Column(Integer, ForeignKey("cgmlst_cluster.id"))
+    #cgmlst_cluster = relationship("CgmlstCluster", back_populates="sample_cgmlst_clusters")
+
+class SampleMiruCluster(Base):
+    sample_id = Column(Integer, ForeignKey("sample.id"), nullable=False)
+
+    cluster_id = Column(Integer, ForeignKey("miru_cluster.id"))
+
+    #miru_cluster = relationship("MiruCluster", back_populates="sample_miru_clusters")

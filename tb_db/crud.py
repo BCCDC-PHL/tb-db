@@ -89,8 +89,7 @@ def get_sample(db: Session, sample_id: str):
     :return: Current valid database record for the sample.
     :rtype: models.Sample|NoneType
     """
-    sample_record = db.query(Sample).where(and_(Sample.sample_id == sample_id,
-                                                Sample.valid_until == None)).one_or_none()
+    sample_record = db.query(Sample).where(Sample.sample_id == sample_id).one_or_none()
 
     return sample_record
 
@@ -137,7 +136,7 @@ def create_cgmlst_allele_profile(db: Session, cgmlst_allele_profile: dict[str, o
         )
         db.add(db_sample)
         db.commit()
-    stmt = select(Sample).where(and_(Sample.sample_id == sample_id, Sample.valid_until == None))
+    stmt = select(Sample).where(Sample.sample_id == sample_id)
     sample = db.scalars(stmt).one()
     db_cgmlst_allele_profile = CgmlstAlleleProfile(
         sample_id = sample.id,
@@ -175,7 +174,7 @@ def create_cgmlst_allele_profiles(db: Session, cgmlst_allele_profiles: list[dict
             )
             db.add(db_sample)
             db.commit()
-        stmt = select(Sample).where(and_(Sample.sample_id == sample_id, Sample.valid_until == None))
+        stmt = select(Sample).where(Sample.sample_id == sample_id)
         sample = db.scalars(stmt).one()
         db_cgmlst_allele_profile = CgmlstAlleleProfile(
             sample_id = sample.id,
@@ -216,29 +215,34 @@ def create_miru_profile(db: Session, sample_id: str, miru_profile: dict[str, obj
     cluster_id = miru_profile['cluster']
     if (cluster_id not in existing_miru_cluster_ids):
         db_miru_cluster = MiruCluster(
-            cluster_id = cluster_id,
+            cluster_id = cluster_id
         )
         db.add(db_miru_cluster)
         db.commit()
 
-    select_miru_cluster_stmt = select(MiruCluster).where(and_(MiruCluster.cluster_id == cluster_id, MiruCluster.valid_until == None))
+    select_miru_cluster_stmt = select(MiruCluster).where(MiruCluster.cluster_id == cluster_id)
     db_miru_cluster = db.scalars(select_miru_cluster_stmt).one()
 
     if sample_id not in existing_sample_ids:
         db_sample = Sample(
             sample_id = sample_id,
-            collection_date = miru_profile['collection_date'],
-            miru_cluster_id = db_miru_cluster.id,
+            collection_date = miru_profile['collection_date']
         )
         db.add(db_sample)
         db.commit()
-    else:
-        select_sample_stmt = select(Sample).where(and_(Sample.sample_id == sample_id, Sample.valid_until == None))
-        sample = db.scalars(select_sample_stmt).one()
-        sample.miru_cluster_id = db_miru_cluster.id
-        db.commit()
+    
+    select_sample_stmt = select(Sample).where(Sample.sample_id == sample_id)
+    sample = db.scalars(select_sample_stmt).one()
+    sample_miru_cluster = SampleMiruCluster(
+        sample_id = sample.id,
+        cluster_id = db_miru_cluster.id
 
-    select_sample_stmt = select(Sample).where(and_(Sample.sample_id == sample_id, Sample.valid_until == None))
+    )
+
+    db.add(sample_miru_cluster)
+    db.commit()
+
+    select_sample_stmt = select(Sample).where(Sample.sample_id == sample_id)
     sample = db.scalars(select_sample_stmt).one()
 
     vntr_fields = {}
@@ -261,7 +265,7 @@ def create_miru_profile(db: Session, sample_id: str, miru_profile: dict[str, obj
         profile_by_position = json.dumps(profile_by_position),
         miru_pattern = miru_profile['miru_pattern'],
     )
-    select_miru_profile_stmt = select(MiruProfile).where(and_(MiruProfile.sample_id == sample.id, MiruProfile.valid_until == None))
+    select_miru_profile_stmt = select(MiruProfile).where(MiruProfile.sample_id == sample.id)
     existing_profile_for_sample = db.scalars(select_miru_profile_stmt).one_or_none()
     if existing_profile_for_sample is not None:
         existing_profile_for_sample.percent_called = db_miru_profile.percent_called
@@ -303,32 +307,40 @@ def create_miru_profiles(db: Session, miru_profiles_by_sample_id: dict[str, obje
         cluster_id = miru_profile['cluster']
         if (cluster_id not in existing_miru_cluster_ids) and (cluster_id not in added_miru_cluster_ids):
             db_miru_cluster = MiruCluster(
-                cluster_id = cluster_id,
+                cluster_id = cluster_id
             )
             db.add(db_miru_cluster)
             db.commit()
             added_miru_cluster_ids.add(cluster_id)
         else:
-            select_miru_cluster_stmt = select(MiruCluster).where(and_(MiruCluster.cluster_id == cluster_id, MiruCluster.valid_until == None))
+            select_miru_cluster_stmt = select(MiruCluster).where(MiruCluster.cluster_id == cluster_id)
             db_miru_cluster = db.scalars(select_miru_cluster_stmt).one()
 
         if sample_id not in existing_sample_ids:
             db_sample = Sample(
                 sample_id = sample_id,
                 accession = miru_profile['accession'],
-                collection_date = miru_profile['collection_date'],
-                miru_cluster_id = db_miru_cluster.id,
+                collection_date = miru_profile['collection_date']
+                #miru_cluster_id = db_miru_cluster.id,
             )
             db.add(db_sample)
             db.commit()
         else:
-            select_sample_stmt = select(Sample).where(and_(Sample.sample_id == sample_id, Sample.valid_until == None))
+            select_sample_stmt = select(Sample).where(Sample.sample_id == sample_id)
             sample = db.scalars(select_sample_stmt).one()
-            sample.miru_cluster_id = db_miru_cluster.id
-            db.commit()
+            #sample.miru_cluster_id = db_miru_cluster.id
+            
 
-        select_sample_stmt = select(Sample).where(and_(Sample.sample_id == sample_id, Sample.valid_until == None))
+        select_sample_stmt = select(Sample).where(Sample.sample_id == sample_id)
         sample = db.scalars(select_sample_stmt).one()
+
+        sample_miru_cluster = SampleMiruCluster(
+        sample_id = sample.id,
+        cluster_id = db_miru_cluster.id
+
+        )
+        db.add(sample_miru_cluster)
+        db.commit()
 
         vntr_fields = {}
         for k, v in miru_profile.items():
@@ -350,7 +362,7 @@ def create_miru_profiles(db: Session, miru_profiles_by_sample_id: dict[str, obje
             profile_by_position = json.dumps(profile_by_position),
             miru_pattern = miru_profile['miru_pattern']
         )
-        select_miru_profile_stmt = select(MiruProfile).where(and_(MiruProfile.sample_id == sample.id, MiruProfile.valid_until == None))
+        select_miru_profile_stmt = select(MiruProfile).where(MiruProfile.sample_id == sample.id)
         existing_profile_for_sample = db.scalars(select_miru_profile_stmt).one_or_none()
         if existing_profile_for_sample is not None:
             existing_profile_for_sample.percent_called = db_miru_profile.percent_called
@@ -377,18 +389,17 @@ def get_miru_cluster_by_sample_id(db: Session, sample_id: str):
     query_result = db.query(Sample).filter(
         Sample.sample_id == sample_id
     )
+    id = query_result.one_or_none().id
 
-    sample_dicts = []
-    for row in query_result:
-        sample_dicts.append(utils.row2dict(row))
-    
-    for item in sample_dicts:
-        if item['valid_until'] is None:
-            miru_cluster_id = item['miru_cluster_id']
+ 
+    query_result = db.query(SampleMiruCluster).filter(
+        SampleMiruCluster.sample_id == id
+    )
 
-    query_result = db.query(MiruCluster).get(miru_cluster_id)
     
-    miru_cluster_code = utils.row2dict(query_result)['cluster_id']
+    miru_cluster_id = query_result.one_or_none().cluster_id
+    
+    miru_cluster_code = db.query(MiruCluster).get(miru_cluster_id).cluster_id
 
     return miru_cluster_code
 
@@ -421,22 +432,27 @@ def add_samples_to_cgmlst_clusters(db: Session, cgmlst_cluster: list[dict[str, o
         cluster_id = row['cluster']
         if (cluster_id not in existing_cgmlst_cluster_ids) and (cluster_id not in added_cgmlst_cluster_ids):
             db_cgmlst_cluster = CgmlstCluster(
-                cluster_id = cluster_id,
+                cluster_id = cluster_id
             )
             db.add(db_cgmlst_cluster)
             db.commit()
             added_cgmlst_cluster_ids.add(cluster_id)
-        select_cgmlst_cluster_stmt = select(CgmlstCluster).where(and_(CgmlstCluster.cluster_id == cluster_id, CgmlstCluster.valid_until == None))
+        select_cgmlst_cluster_stmt = select(CgmlstCluster).where(CgmlstCluster.cluster_id == cluster_id)
         db_cgmlst_cluster = db.scalars(select_cgmlst_cluster_stmt).one()
         if sample_id not in existing_sample_ids:
             logging.warning('cannot add cgmlst cluster for a sample that does not exist...')         
         else:
-            select_sample_stmt = select(Sample).where(and_(Sample.sample_id == sample_id, Sample.valid_until == None))
+            select_sample_stmt = select(Sample).where(Sample.sample_id == sample_id)
             sample = db.scalars(select_sample_stmt).one()
-            sample.cgmlst_cluster_id = db_cgmlst_cluster.id
+            #sample.cgmlst_cluster_id = db_cgmlst_cluster.id
+            cgmlst_sample_cluster = SampleCgmlstCluster(
+                sample_id = sample.id,
+                cluster_id = db_cgmlst_cluster.id
+            )
             db_samples.append(sample)
+            db.add(cgmlst_sample_cluster)
             db.commit()
-            db.refresh(sample)
+            #db.refresh()
 
 
     #select_sample_stmt = select(Sample).where(and_(Sample.sample_id == sample_id, Sample.valid_until == None))
@@ -455,12 +471,12 @@ def add_sample_to_cgmlst_cluster(db: Session, sample_id: str, cgmlst_cluster: di
     cluster_id = cgmlst_cluster['cluster']
     if (cluster_id not in existing_cgmlst_cluster_ids):
         db_cgmlst_cluster = CgmlstCluster(
-            cluster_id = cluster_id,
+            cluster_id = cluster_id
         )
         db.add(db_cgmlst_cluster)
         db.commit()
 
-    select_cgmlst_cluster_stmt = select(CgmlstCluster).where(and_(CgmlstCluster.cluster_id == cluster_id, CgmlstCluster.valid_until == None))
+    select_cgmlst_cluster_stmt = select(CgmlstCluster).where(CgmlstCluster.cluster_id == cluster_id)
     db_cgmlst_cluster = db.scalars(select_cgmlst_cluster_stmt).one()
 
     if sample_id not in existing_sample_ids:
@@ -468,9 +484,14 @@ def add_sample_to_cgmlst_cluster(db: Session, sample_id: str, cgmlst_cluster: di
         return None
 
     else:
-        select_sample_stmt = select(Sample).where(and_(Sample.sample_id == sample_id, Sample.valid_until == None))
+        select_sample_stmt = select(Sample).where(Sample.sample_id == sample_id)
         sample = db.scalars(select_sample_stmt).one()
-        sample.cgmlst_cluster_id = db_cgmlst_cluster.id
+        #sample.cgmlst_cluster_id = db_cgmlst_cluster.id
+        cgmlst_sample_cluster = SampleCgmlstCluster(
+                sample_id = sample.id,
+                cluster_id = db_cgmlst_cluster.id
+        )
+        db.add(cgmlst_sample_cluster)
         db.commit()
         return sample
 
@@ -480,39 +501,20 @@ def get_cgmlst_cluster_by_sample_id(db: Session, sample_id: str):
     query_result = db.query(Sample).filter(
         Sample.sample_id == sample_id
     )
+    id = query_result.one_or_none().id
 
-    sample_dicts = []
-    for row in query_result:
-        sample_dicts.append(utils.row2dict(row))
+ 
+    query_result = db.query(SampleCgmlstCluster).filter(
+        SampleCgmlstCluster.sample_id == id
+    )
+
     
-    for item in sample_dicts:
-        if item['valid_until'] is None:
-            cgmlst_cluster_id = item['cgmlst_cluster_id']
-
-    query_result = db.query(CgmlstCluster).get(cgmlst_cluster_id)
+    cgmlst_cluster_id = query_result.one_or_none().cluster_id
     
-    cgmlst_cluster_code = utils.row2dict(query_result)['cluster_id']
-
+    cgmlst_cluster_code = db.query(CgmlstCluster).get(cgmlst_cluster_id).cluster_id
 
 
     return cgmlst_cluster_code
 
-#update parent's link to new child id when old child is invalidated and a new child with new sample id is created
-def update_link_foreign_keys(db:Session, sampleid, parent_db, child_db):
-
-    #child samples are all samples in the samples table where sample_id is 22s393
-    all_child_sample = db.query(child_db).where(child_db.sample_id == sampleid)
-    valid_id = all_child_sample.where(child_db.valid_until==None).one_or_none().id
-    sample_dicts = []
-    for row in all_child_sample:
-        sample_dicts.append(utils.row2dict(row))
-    
-    for item in sample_dicts:
-        parent_sample = db.query(parent_db).where(parent_db.sample_id == item['id']).one_or_none()
-        if parent_sample is not None:
-            parent_sample.sample_id = valid_id
-            db.commit()
-            db.refresh(parent_sample)
-            break
 
 

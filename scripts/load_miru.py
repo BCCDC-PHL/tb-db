@@ -37,7 +37,7 @@ def main(args):
         stmt = select(Sample).where(Sample.id == profile.sample_id)
         sample = session.scalars(stmt).one()
         print("Created profile for sample: " + sample.sample_id)
-        crud.update_link_foreign_keys(session,sample.sample_id, CgmlstAlleleProfile,Sample)
+        #crud.update_link_foreign_keys(session,sample.sample_id, CgmlstAlleleProfile,Sample)
 
 
 if __name__ == '__main__':

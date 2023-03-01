@@ -33,7 +33,7 @@ def main(args):
         sample = session.scalars(stmt).one()
         print("Created profile for sample: " + sample.sample_id)
         print("Updating Parent links..")
-        crud.update_link_foreign_keys(session,sample.sample_id, MiruProfile,Sample)
+        #crud.update_link_foreign_keys(session,sample.sample_id, MiruProfile,Sample)
 
 
 if __name__ == '__main__':

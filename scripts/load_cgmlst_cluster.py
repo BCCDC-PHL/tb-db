@@ -31,9 +31,9 @@ def main(args):
 
     for sample in created_cgmlst_clusters:
         print("added cluster to sample: " + sample.sample_id)
-        print("Updating Parent links..")
-        crud.update_link_foreign_keys(session,sample.sample_id, CgmlstAlleleProfile,Sample)
-        crud.update_link_foreign_keys(session,sample.sample_id, MiruProfile,Sample)
+        #print("Updating Parent links..")
+        #crud.update_link_foreign_keys(session,sample.sample_id, CgmlstAlleleProfile,Sample)
+        #crud.update_link_foreign_keys(session,sample.sample_id, MiruProfile,Sample)
 
 
 
