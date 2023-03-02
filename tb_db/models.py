@@ -15,7 +15,7 @@ from sqlalchemy.orm import declarative_mixin
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import make_transient
 from sqlalchemy.orm import Session
-
+from sqlalchemy import Table
 
 def camel_to_snake(s: str) -> str:
     """
@@ -61,22 +61,36 @@ Base = declarative_base(cls=Base)
 #        self.valid_until = None
 
 
-@event.listens_for(Session, "before_flush")
-def before_flush(session, flush_context, instances):
-    for instance in session.dirty:
-        if not isinstance(instance):
-            continue
-        if not session.is_modified(instance):
-            continue
+#@event.listens_for(Session, "before_flush")
+#def before_flush(session, flush_context, instances):
+#    for instance in session.dirty:
+#        if not isinstance(instance):
+#            continue
+#        if not session.is_modified(instance):
+#            continue
+#
+#        if not attributes.instance_state(instance).has_identity:
+#            continue
+#
+#        # make it transient
+#        instance.new_version(session)
+#
+#        # re-add
+#        session.add(instance)
 
-        if not attributes.instance_state(instance).has_identity:
-            continue
+association_table_cgmlst = Table(
+    "association_table_cgmlst",
+    Base.metadata,
+    Column("sample_id", ForeignKey("sample.id")),
+    Column("cgmlst_cluster_id", ForeignKey("cgmlst_cluster.id")),
+)
 
-        # make it transient
-        instance.new_version(session)
-
-        # re-add
-        session.add(instance)
+association_table_miru = Table(
+    "association_table_miru",
+    Base.metadata,
+    Column("sample_id", ForeignKey("sample.id"), primary_key=True),
+    Column("miru_cluster_id", ForeignKey("miru_cluster.id"), primary_key=True),
+)
 
 
 class Sample(Base):
@@ -92,8 +106,8 @@ class Sample(Base):
     #)
     #miru_cluster_id = Column(Integer, ForeignKey("miru_cluster.id"), nullable=True)
 
-    #cgmlst_cluster = relationship("CgmlstCluster", back_populates="samples")
-    #miru_cluster = relationship("MiruCluster", back_populates="samples")
+    cgmlst_cluster = relationship("CgmlstCluster", secondary=association_table_cgmlst, backref = 'samples')
+    miru_cluster = relationship("MiruCluster", secondary=association_table_miru, backref='samples')
 
 
 
@@ -153,15 +167,15 @@ class MiruCluster(Base):
     #)
 
 
-class SampleCgmlstCluster(Base):
-    sample_id = Column(Integer, ForeignKey("sample.id"), nullable=False)
+#class SampleCgmlstCluster(Base):
+#    sample_id = Column(Integer, ForeignKey("sample.id"), nullable=False)
 
-    cluster_id = Column(Integer, ForeignKey("cgmlst_cluster.id"))
+#    cluster_id = Column(Integer, ForeignKey("cgmlst_cluster.id"))
     #cgmlst_cluster = relationship("CgmlstCluster", back_populates="sample_cgmlst_clusters")
 
-class SampleMiruCluster(Base):
-    sample_id = Column(Integer, ForeignKey("sample.id"), nullable=False)
+#class SampleMiruCluster(Base):
+#    sample_id = Column(Integer, ForeignKey("sample.id"), nullable=False)
 
-    cluster_id = Column(Integer, ForeignKey("miru_cluster.id"))
+#    cluster_id = Column(Integer, ForeignKey("miru_cluster.id"))
 
     #miru_cluster = relationship("MiruCluster", back_populates="sample_miru_clusters")

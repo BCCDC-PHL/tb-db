@@ -105,7 +105,7 @@ class TestCrudSample(unittest.TestCase):
         created_sample = crud.create_miru_profile(self.session,'SAM001', miru_dict)
         miru_id = crud.get_miru_cluster_by_sample_id(self.session, 'SAM001')
         self.assertIsNotNone(created_sample)
-        self.assertEqual(miru_id,'BC278')
+        self.assertEqual(miru_id,['BC278'])
 
     def test_get_cgmlst_cluster(self):
         cgmlst_cluster_dict = {
@@ -126,7 +126,7 @@ class TestCrudSample(unittest.TestCase):
         cgmlst_id = crud.get_cgmlst_cluster_by_sample_id(self.session, 'SAM001')
 
         self.assertIsNotNone(created_sample)
-        self.assertEqual(cgmlst_id,'BC300')
+        self.assertEqual(cgmlst_id,['BC300'])
 
 
     def test_get_miru_cluster(self):
@@ -143,7 +143,7 @@ class TestCrudSample(unittest.TestCase):
         created_sample = crud.create_miru_profile(self.session,'SAM001', miru_dict)
         miru_id = crud.get_miru_cluster_by_sample_id(self.session, 'SAM001')
         self.assertIsNotNone(created_sample)
-        self.assertEqual(miru_id,'BC278')
+        self.assertEqual(miru_id,['BC278'])
 
     def test_get_cgmlst_cluster(self):
         cgmlst_cluster_dict = {
@@ -164,7 +164,7 @@ class TestCrudSample(unittest.TestCase):
         cgmlst_id = crud.get_cgmlst_cluster_by_sample_id(self.session, 'SAM001')
 
         
-        self.assertEqual(cgmlst_id,'BC300')
+        self.assertEqual(cgmlst_id,['BC300'])
         #self.assertEqual(result.id, 2)
 
     def test_delete_sample(self):
