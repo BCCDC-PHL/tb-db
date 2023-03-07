@@ -23,8 +23,6 @@ def main(args):
     session = Session()
 
     cgmlst_by_sample_id = parsers.parse_cgmlst(args.input)
-    # print(json.dumps(cgmlst_by_sample_id, indent=2))
-    # exit()
     cgmlst_profiles = list(cgmlst_by_sample_id.values())
     created_profiles = crud.create_cgmlst_allele_profiles(session, cgmlst_profiles)
 

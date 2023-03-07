@@ -24,16 +24,10 @@ def main(args):
     session = Session()
 
     cgmlst_cluster_by_sample = parsers.parse_cgmlst_cluster(args.input)
-    # print(json.dumps(cgmlst_by_sample_id, indent=2))
-    # exit()
-    #cgmlst_profiles = list(cgmlst_by_sample_id.values())
     created_cgmlst_clusters = crud.add_samples_to_cgmlst_clusters(session, cgmlst_cluster_by_sample)
 
     for sample in created_cgmlst_clusters:
         print("added cluster to sample: " + sample.sample_id)
-        #print("Updating Parent links..")
-        #crud.update_link_foreign_keys(session,sample.sample_id, CgmlstAlleleProfile,Sample)
-        #crud.update_link_foreign_keys(session,sample.sample_id, MiruProfile,Sample)
 
 
 
