@@ -91,6 +91,43 @@ class TestCrudSample(unittest.TestCase):
         self.assertIsNotNone(created_sample)
         self.assertEqual(created_sample.id, 1)
 
+    def test_get_miru_cluster(self):
+        miru_dict = {
+            'key': 'SAM001',
+            'cluster': 'BC278',
+            'collection_date': datetime.date(1970, 1, 1),
+            'acc_num':'ACC001',
+            'miru_02':'2',
+            'miru_24':'2',
+            'miru_26':'2',
+            'miru_pattern':'123456789'
+        }
+        created_sample = crud.create_miru_profile(self.session,'SAM001', miru_dict)
+        miru_id = crud.get_miru_cluster_by_sample_id(self.session, 'SAM001')
+        self.assertIsNotNone(created_sample)
+        self.assertEqual(miru_id,['BC278'])
+
+    def test_get_cgmlst_cluster(self):
+        cgmlst_cluster_dict = {
+            'key': 'SAM001',
+            'cluster': 'BC300'
+        }
+        sample_dict = {
+            'sample_id': 'SAM001',
+            'accession': 'ACC001',
+            'collection_date': datetime.date(1970, 1, 1)            
+        }
+
+        created_sample = crud.create_sample(self.session, sample_dict)
+
+        
+        result = crud.add_sample_to_cgmlst_cluster(self.session,'SAM001', cgmlst_cluster_dict)
+
+        cgmlst_id = crud.get_cgmlst_cluster_by_sample_id(self.session, 'SAM001')
+
+        self.assertIsNotNone(created_sample)
+        self.assertEqual(cgmlst_id,['BC300'])
+
 
     def test_get_miru_cluster(self):
         miru_dict = {
@@ -106,7 +143,7 @@ class TestCrudSample(unittest.TestCase):
         created_sample = crud.create_miru_profile(self.session,'SAM001', miru_dict)
         miru_id = crud.get_miru_cluster_by_sample_id(self.session, 'SAM001')
         self.assertIsNotNone(created_sample)
-        self.assertEqual(miru_id,'BC278')
+        self.assertEqual(miru_id,['BC278'])
 
     def test_get_cgmlst_cluster(self):
         cgmlst_cluster_dict = {
@@ -120,15 +157,12 @@ class TestCrudSample(unittest.TestCase):
         }
 
         created_sample = crud.create_sample(self.session, sample_dict)
-        self.assertEqual(created_sample.id,1)
         
         result = crud.add_sample_to_cgmlst_cluster(self.session,'SAM001', cgmlst_cluster_dict)
 
         cgmlst_id = crud.get_cgmlst_cluster_by_sample_id(self.session, 'SAM001')
-
         
-        self.assertEqual(cgmlst_id,'BC300')
-        self.assertEqual(result.id, 2)
+        self.assertEqual(cgmlst_id,['BC300'])
 
     def test_delete_sample(self):
         sample_dict = {
@@ -173,9 +207,7 @@ class SampleCrudMachine(RuleBasedStateMachine):
         if created_sample:
             json_serializable_sample = utils.row2dict(created_sample)
             date_fields = [
-                'collection_date',
-                'valid_until',
-                'created_at',
+                'collection_date'
             ]
             for date_field in date_fields: 
                 json_serializable_sample[date_field] = str(json_serializable_sample[date_field])
@@ -238,9 +270,7 @@ class CgmlstAlleleProfileCrudMachine(RuleBasedStateMachine):
         if created_sample:
             json_serializable_sample = utils.row2dict(created_sample)
             date_fields = [
-                'collection_date',
-                'valid_until',
-                'created_at',
+                'collection_date'
             ]
             for date_field in date_fields: 
                 json_serializable_sample[date_field] = str(json_serializable_sample[date_field])
@@ -289,13 +319,7 @@ class CgmlstAlleleProfileCrudMachine(RuleBasedStateMachine):
         
         created_cgmlst_profile = crud.create_cgmlst_allele_profile(self.session, profile_dict)
         json_serializable_cgmlst_profile = utils.row2dict(created_cgmlst_profile)
-        date_fields = [
-            'valid_until',
-            'created_at',
-        ]
-        for date_field in date_fields: 
-            json_serializable_cgmlst_profile[date_field] = str(json_serializable_cgmlst_profile[date_field])
-        log.debug("Created cgMLST Profile for sample \"" + sample_id + "\": " + json.dumps(json_serializable_cgmlst_profile))
+
 
         note(json_serializable_cgmlst_profile)
         assert(created_cgmlst_profile.sample_id == sample.id)

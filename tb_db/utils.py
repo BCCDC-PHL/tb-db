@@ -16,3 +16,5 @@ def row2dict(row):
         d[column.name] = getattr(row, column.name)
 
     return d
+
+    return d

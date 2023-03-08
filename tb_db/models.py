@@ -15,7 +15,7 @@ from sqlalchemy.orm import declarative_mixin
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import make_transient
 from sqlalchemy.orm import Session
-
+from sqlalchemy import Table
 
 def camel_to_snake(s: str) -> str:
     """
@@ -38,62 +38,29 @@ class Base:
 
 Base = declarative_base(cls=Base)
 
+association_table_cgmlst = Table(
+    "association_table_cgmlst",
+    Base.metadata,
+    Column("sample_id", ForeignKey("sample.id")),
+    Column("cgmlst_cluster_id", ForeignKey("cgmlst_cluster.id")),
+)
 
-@declarative_mixin
-class HistoryMixin:
-    created_at = Column(DateTime, default=func.now())
-    valid_until = Column(DateTime, default=None)
-
-    def new_version(self, session):
-        # invalidate current version - generate an update
-        old_id = self.id
-        session.query(self.__class__).filter_by(id=old_id).update(
-            values=dict(valid_until=func.now()), synchronize_session=False
-        )
-
-        # make us transient (removes persistent identity)
-        # make this an INSERT
-        make_transient(self)
-        self.id = None
-
-        # set created_at and valid_until, which means we have a new PK.
-        self.created_at = func.now()
-        self.valid_until = None
+association_table_miru = Table(
+    "association_table_miru",
+    Base.metadata,
+    Column("sample_id", ForeignKey("sample.id"), primary_key=True),
+    Column("miru_cluster_id", ForeignKey("miru_cluster.id"), primary_key=True),
+)
 
 
-@event.listens_for(Session, "before_flush")
-def before_flush(session, flush_context, instances):
-    for instance in session.dirty:
-        if not isinstance(instance, HistoryMixin):
-            continue
-        if not session.is_modified(instance):
-            continue
-
-        if not attributes.instance_state(instance).has_identity:
-            continue
-
-        # make it transient
-        instance.new_version(session)
-
-        # re-add
-        session.add(instance)
-
-
-class Sample(Base, HistoryMixin):
+class Sample(Base):
 
     sample_id = Column(String)
     accession = Column(String)
     collection_date = Column(Date)
 
-    cgmlst_cluster_id = Column(
-        Integer,
-        ForeignKey("cgmlst_cluster.id"),
-        nullable=True,
-    )
-    miru_cluster_id = Column(Integer, ForeignKey("miru_cluster.id"), nullable=True)
-
-    cgmlst_cluster = relationship("CgmlstCluster", back_populates="samples")
-    miru_cluster = relationship("MiruCluster", back_populates="samples")
+    cgmlst_cluster = relationship("CgmlstCluster", secondary=association_table_cgmlst, backref = 'samples')
+    miru_cluster = relationship("MiruCluster", secondary=association_table_miru, backref='samples')
 
 
 class Library(Base):
@@ -105,7 +72,7 @@ class Library(Base):
     library_id = Column(String)
 
 
-class CgmlstScheme(Base, HistoryMixin):
+class CgmlstScheme(Base):
     """
     """
 
@@ -114,7 +81,7 @@ class CgmlstScheme(Base, HistoryMixin):
     num_loci = Column(Integer)
 
 
-class CgmlstAlleleProfile(Base, HistoryMixin):
+class CgmlstAlleleProfile(Base):
     """
     """
 
@@ -124,7 +91,7 @@ class CgmlstAlleleProfile(Base, HistoryMixin):
     profile = Column(JSON)
 
 
-class MiruProfile(Base, HistoryMixin):
+class MiruProfile(Base):
     """
     """
 
@@ -134,18 +101,11 @@ class MiruProfile(Base, HistoryMixin):
     miru_pattern = Column(String)
 
 
-class CgmlstCluster(Base, HistoryMixin):
+class CgmlstCluster(Base):
 
     cluster_id = Column(String)
 
-    samples = relationship(
-        "Sample", back_populates="cgmlst_cluster", cascade="all, delete-orphan"
-    )
 
-
-class MiruCluster(Base, HistoryMixin):
+class MiruCluster(Base):
 
     cluster_id = Column(String)
-    samples = relationship(
-        "Sample", back_populates="miru_cluster", cascade="all, delete-orphan"
-    )
