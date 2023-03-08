@@ -55,15 +55,11 @@
 </li>
 <li><a class="reference internal" href="#tb-db-models">tb_db.models</a><ul>
 <li><a class="reference internal" href="#tb_db.models.CgmlstAlleleProfile"><code class="docutils literal notranslate"><span class="pre">CgmlstAlleleProfile</span></code></a><ul>
-<li><a class="reference internal" href="#tb_db.models.CgmlstAlleleProfile.created_at"><code class="docutils literal notranslate"><span class="pre">CgmlstAlleleProfile.created_at</span></code></a></li>
 <li><a class="reference internal" href="#tb_db.models.CgmlstAlleleProfile.id"><code class="docutils literal notranslate"><span class="pre">CgmlstAlleleProfile.id</span></code></a></li>
-<li><a class="reference internal" href="#tb_db.models.CgmlstAlleleProfile.valid_until"><code class="docutils literal notranslate"><span class="pre">CgmlstAlleleProfile.valid_until</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#tb_db.models.CgmlstScheme"><code class="docutils literal notranslate"><span class="pre">CgmlstScheme</span></code></a><ul>
-<li><a class="reference internal" href="#tb_db.models.CgmlstScheme.created_at"><code class="docutils literal notranslate"><span class="pre">CgmlstScheme.created_at</span></code></a></li>
 <li><a class="reference internal" href="#tb_db.models.CgmlstScheme.id"><code class="docutils literal notranslate"><span class="pre">CgmlstScheme.id</span></code></a></li>
-<li><a class="reference internal" href="#tb_db.models.CgmlstScheme.valid_until"><code class="docutils literal notranslate"><span class="pre">CgmlstScheme.valid_until</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#tb_db.models.Library"><code class="docutils literal notranslate"><span class="pre">Library</span></code></a><ul>
@@ -71,9 +67,7 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#tb_db.models.MiruProfile"><code class="docutils literal notranslate"><span class="pre">MiruProfile</span></code></a><ul>
-<li><a class="reference internal" href="#tb_db.models.MiruProfile.created_at"><code class="docutils literal notranslate"><span class="pre">MiruProfile.created_at</span></code></a></li>
 <li><a class="reference internal" href="#tb_db.models.MiruProfile.id"><code class="docutils literal notranslate"><span class="pre">MiruProfile.id</span></code></a></li>
-<li><a class="reference internal" href="#tb_db.models.MiruProfile.valid_until"><code class="docutils literal notranslate"><span class="pre">MiruProfile.valid_until</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#tb_db.models.camel_to_snake"><code class="docutils literal notranslate"><span class="pre">camel_to_snake()</span></code></a></li>
@@ -136,7 +130,6 @@ entities from the database.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>db</strong> (<em>sqlalchemy.orm.Session</em>) – Database session.</p></li>
-<li><p><strong>sample_id</strong> (<em>str</em>) – Sample ID</p></li>
 <li><p><strong>cgmlst_cluster</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>object</em><em>]</em>) – Dict representing a cgmlst cluster.</p></li>
 </ul>
 </dd>
@@ -320,18 +313,8 @@ relationships with one another.</p>
 <dt class="sig sig-object py" id="tb_db.models.CgmlstAlleleProfile">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tb_db.models.</span></span><span class="sig-name descname"><span class="pre">CgmlstAlleleProfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tb_db.models.CgmlstAlleleProfile" title="Permalink to this definition"></a></dt>
 <dd><dl class="py attribute">
-<dt class="sig sig-object py" id="tb_db.models.CgmlstAlleleProfile.created_at">
-<span class="sig-name descname"><span class="pre">created_at</span></span><a class="headerlink" href="#tb_db.models.CgmlstAlleleProfile.created_at" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
 <dt class="sig sig-object py" id="tb_db.models.CgmlstAlleleProfile.id">
 <span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#tb_db.models.CgmlstAlleleProfile.id" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="tb_db.models.CgmlstAlleleProfile.valid_until">
-<span class="sig-name descname"><span class="pre">valid_until</span></span><a class="headerlink" href="#tb_db.models.CgmlstAlleleProfile.valid_until" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -340,18 +323,8 @@ relationships with one another.</p>
 <dt class="sig sig-object py" id="tb_db.models.CgmlstScheme">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tb_db.models.</span></span><span class="sig-name descname"><span class="pre">CgmlstScheme</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tb_db.models.CgmlstScheme" title="Permalink to this definition"></a></dt>
 <dd><dl class="py attribute">
-<dt class="sig sig-object py" id="tb_db.models.CgmlstScheme.created_at">
-<span class="sig-name descname"><span class="pre">created_at</span></span><a class="headerlink" href="#tb_db.models.CgmlstScheme.created_at" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
 <dt class="sig sig-object py" id="tb_db.models.CgmlstScheme.id">
 <span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#tb_db.models.CgmlstScheme.id" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="tb_db.models.CgmlstScheme.valid_until">
-<span class="sig-name descname"><span class="pre">valid_until</span></span><a class="headerlink" href="#tb_db.models.CgmlstScheme.valid_until" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -370,18 +343,8 @@ relationships with one another.</p>
 <dt class="sig sig-object py" id="tb_db.models.MiruProfile">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tb_db.models.</span></span><span class="sig-name descname"><span class="pre">MiruProfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tb_db.models.MiruProfile" title="Permalink to this definition"></a></dt>
 <dd><dl class="py attribute">
-<dt class="sig sig-object py" id="tb_db.models.MiruProfile.created_at">
-<span class="sig-name descname"><span class="pre">created_at</span></span><a class="headerlink" href="#tb_db.models.MiruProfile.created_at" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
 <dt class="sig sig-object py" id="tb_db.models.MiruProfile.id">
 <span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#tb_db.models.MiruProfile.id" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="tb_db.models.MiruProfile.valid_until">
-<span class="sig-name descname"><span class="pre">valid_until</span></span><a class="headerlink" href="#tb_db.models.MiruProfile.valid_until" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
