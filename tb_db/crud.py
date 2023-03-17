@@ -115,7 +115,7 @@ def delete_sample(db: Session, sample_id: str):
 
 
 ### cgMLST
-def create_cgmlst_allele_profile(db: Session, cgmlst_allele_profile: dict[str, object]):
+def create_cgmlst_allele_profile(db: Session, scheme: dict, cgmlst_allele_profile: dict[str, object]):
     """
     Create a single cgMLST allele profile record.
 
@@ -128,6 +128,8 @@ def create_cgmlst_allele_profile(db: Session, cgmlst_allele_profile: dict[str, o
     """
     existing_samples = db.query(Sample).all()
     existing_sample_ids = set([sample.sample_id for sample in existing_samples])
+    existing_schemes = db.query(CgmlstScheme).all()
+    existing_schemes_names = set([s.name for s in existing_schemes])
 
     sample_id = cgmlst_allele_profile['sample_id']
     if sample_id not in existing_sample_ids:
@@ -136,12 +138,23 @@ def create_cgmlst_allele_profile(db: Session, cgmlst_allele_profile: dict[str, o
         )
         db.add(db_sample)
         db.commit()
+    if scheme['name'] not in existing_schemes_names:
+        db_scheme = CgmlstScheme(
+            name = scheme['name'],
+            version = scheme['version'],
+            num_loci = scheme['num_loci']
+        )
+        db.add(db_scheme)
+        db.commit()
     stmt = select(Sample).where(Sample.sample_id == sample_id)
     sample = db.scalars(stmt).one()
+    stmt = select(CgmlstScheme).where(CgmlstScheme.name == scheme['name'])
+    scheme_ins = db.scalars(stmt).one()
     db_cgmlst_allele_profile = CgmlstAlleleProfile(
         sample_id = sample.id,
         profile = json.dumps(cgmlst_allele_profile['profile']),
         percent_called = cgmlst_allele_profile['percent_called'],
+        cgmlst_scheme_id = scheme_ins.id
     )
 
     db.add(db_cgmlst_allele_profile)
@@ -151,7 +164,7 @@ def create_cgmlst_allele_profile(db: Session, cgmlst_allele_profile: dict[str, o
     return db_cgmlst_allele_profile
 
 
-def create_cgmlst_allele_profiles(db: Session, cgmlst_allele_profiles: list[dict[str, object]]):
+def create_cgmlst_allele_profiles(db: Session, scheme: dict, cgmlst_allele_profiles: list[dict[str, object]]):
     """
     Create multiple cgMLST allele profile records.
 
@@ -164,7 +177,18 @@ def create_cgmlst_allele_profiles(db: Session, cgmlst_allele_profiles: list[dict
     """
     existing_samples = db.query(Sample).all()
     existing_sample_ids = set([sample.sample_id for sample in existing_samples])
-
+    existing_schemes = db.query(CgmlstScheme).all()
+    existing_schemes_names = set([s.name for s in existing_schemes])
+    if scheme['name'] not in existing_schemes_names:
+        db_scheme = CgmlstScheme(
+            name = scheme['name'],
+            version = scheme['version'],
+            num_loci = scheme['num_loci']
+        )
+        db.add(db_scheme)
+        db.commit()
+    stmt = select(CgmlstScheme).where(CgmlstScheme.name == scheme['name'])
+    scheme_ins = db.scalars(stmt).one()
     db_cgmlst_allele_profiles = []
     for cgmlst_allele_profile in cgmlst_allele_profiles:
         sample_id = cgmlst_allele_profile['sample_id']
@@ -180,6 +204,7 @@ def create_cgmlst_allele_profiles(db: Session, cgmlst_allele_profiles: list[dict
             sample_id = sample.id,
             profile = json.dumps(cgmlst_allele_profile['profile']),
             percent_called = cgmlst_allele_profile['percent_called'],
+            cgmlst_scheme_id = scheme_ins.id
         )
         db_cgmlst_allele_profiles.append(db_cgmlst_allele_profile)
 
@@ -479,5 +504,87 @@ def get_cgmlst_cluster_by_sample_id(db: Session, sample_id: str):
 
     return cgmlst_cluster_code
 
+def create_libraries(db:Session, libraries: dict[str, object]):
 
+    existing_libraries = db.query(Library).all()
+    existing_libraries_ids = set([library.sample_id for library in existing_libraries])
 
+    db_created_libraries = []
+
+    for row in libraries:
+        sample_id = row['sample_id']
+        #print(sample_id)
+        #if sample_id not in existing_sample_ids:
+        #    db_sample = Sample(
+        #        sample_id = sample_id
+        #    )
+        #    db.add(db_sample)
+        #    db.commit()
+        stmt = select(Sample).where(Sample.sample_id == sample_id)
+        sample = db.scalars(stmt).one()
+        stmt = select(Library).where(Library.sample_id == sample.id) 
+        db_libraries = db.scalars(stmt).fetchmany()
+        #print(db_libraries)
+        if not db_libraries:
+            library_created = Library(
+                    sample_id = sample.id,
+                    sequencing_run_id = row['sequencing_run_id'],
+                    #library_id = Column(String)
+                    most_abundant_species_name = row['most_abundant_species_name'],
+                    most_abundant_species_fraction_total_reads = row['most_abundant_species_fraction_total_reads'],
+                    estimated_genome_size_bp = row['estimated_genome_size_bp'],
+                    estimated_depth_coverage = row['estimated_depth_coverage'],
+                    total_bases = row['total_bases'],
+                    average_base_quality = row['average_base_quality'],
+                    percent_bases_above_q30 = row['percent_bases_above_q30'],
+                    percent_gc = row['percent_gc'],
+                    R1_location = row['R1_location'],
+                    R2_location = row['R2_location']
+                )
+            db_created_libraries.append(library_created)
+            db.add_all(db_created_libraries)
+            db.commit()  
+            for db_created_library in db_created_libraries:
+                db.refresh(db_created_library)
+
+        else:   
+            for i in db_libraries:
+                libraries_json = {}
+                libraries_json['sample_id'] = sample_id
+                libraries_json['sequencing_run_id'] = i.sequencing_run_id
+                libraries_json['R1_location'] = i.R1_location
+                libraries_json['R2_location'] = i.R2_location
+                libraries_json['most_abundant_species_name'] = i.most_abundant_species_name
+                libraries_json['most_abundant_species_fraction_total_reads'] = i.most_abundant_species_fraction_total_reads
+                libraries_json['estimated_genome_size_bp'] = i.estimated_genome_size_bp
+                libraries_json['estimated_depth_coverage'] = i.estimated_depth_coverage
+                libraries_json['total_bases'] = i.total_bases
+                libraries_json['average_base_quality'] = i.average_base_quality
+                libraries_json['percent_bases_above_q30'] = i.percent_bases_above_q30
+                libraries_json['percent_gc'] = i.percent_gc
+                
+                if row != libraries_json: #only add if different from what is in the db
+                    library_created = Library(
+                        sample_id = sample.id,
+                        sequencing_run_id = row['sequencing_run_id'],
+                        #library_id = Column(String)
+                        most_abundant_species_name = row['most_abundant_species_name'],
+                        most_abundant_species_fraction_total_reads = row['most_abundant_species_fraction_total_reads'],
+                        estimated_genome_size_bp = row['estimated_genome_size_bp'],
+                        estimated_depth_coverage = row['estimated_depth_coverage'],
+                        total_bases = row['total_bases'],
+                        average_base_quality = row['average_base_quality'],
+                        percent_bases_above_q30 = row['percent_bases_above_q30'],
+                        percent_gc = row['percent_gc'],
+                        R1_location = row['R1_location'],
+                        R2_location = row['R2_location']
+                    )
+                    db_created_libraries.append(library_created)
+                    db.add_all(db_created_libraries)
+                    db.commit()  
+                    for db_created_library in db_created_libraries:
+                        db.refresh(db_created_library)
+                else:
+                    print("qc for sample "+ sample_id, " already exists in the database..")
+
+    return db_created_libraries

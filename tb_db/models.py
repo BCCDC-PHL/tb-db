@@ -16,6 +16,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.orm import make_transient
 from sqlalchemy.orm import Session
 from sqlalchemy import Table
+from sqlalchemy import BigInteger
 
 def camel_to_snake(s: str) -> str:
     """
@@ -59,9 +60,11 @@ class Sample(Base):
     accession = Column(String)
     collection_date = Column(Date)
 
-    cgmlst_cluster = relationship("CgmlstCluster", secondary=association_table_cgmlst, backref = 'samples')
-    miru_cluster = relationship("MiruCluster", secondary=association_table_miru, backref='samples')
+    cgmlst_cluster = relationship("CgmlstCluster", secondary=association_table_cgmlst, backref = 'samples', cascade="all, delete")
+    miru_cluster = relationship("MiruCluster", secondary=association_table_miru, backref='samples', cascade="all, delete")
 
+    cgmlst_allele_profile = relationship("CgmlstAlleleProfile", cascade="all,delete")
+    miru_profile = relationship("MiruProfile", cascade="all,delete")
 
 class Library(Base):
     """
@@ -70,6 +73,16 @@ class Library(Base):
     sample_id = Column(Integer, ForeignKey("sample.id"), nullable=False)
     sequencing_run_id = Column(String)
     library_id = Column(String)
+    most_abundant_species_name = Column(String)
+    most_abundant_species_fraction_total_reads = Column(Float)
+    estimated_genome_size_bp = Column(BigInteger)
+    estimated_depth_coverage = Column(Float)
+    total_bases = Column(BigInteger)
+    average_base_quality = Column(Float)
+    percent_bases_above_q30 = Column(Float)
+    percent_gc = Column(Float)
+    R1_location = Column(String)
+    R2_location = Column(String)
 
 
 class CgmlstScheme(Base):
