@@ -12,6 +12,7 @@ import tb_db.crud as crud
 
 from tb_db.models import Sample
 from tb_db.models import MiruProfile
+from tb_db.models import CgmlstScheme
 
 
 def main(args):
@@ -24,13 +25,14 @@ def main(args):
 
     cgmlst_by_sample_id = parsers.parse_cgmlst(args.input)
     cgmlst_profiles = list(cgmlst_by_sample_id.values())
-    created_profiles = crud.create_cgmlst_allele_profiles(session, cgmlst_profiles)
+    cgmlst_scheme = {'name':'Ridom cgMLST.org','version':'2.1','num_loci':2891} 
+    created_profiles = crud.create_cgmlst_allele_profiles(session, cgmlst_scheme, cgmlst_profiles)
 
     for profile in created_profiles:
         stmt = select(Sample).where(Sample.id == profile.sample_id)
         sample = session.scalars(stmt).one()
         print("Created profile for sample: " + sample.sample_id)
-        print("Updating Parent links..")
+        #print("Updating Parent links..")
         #crud.update_link_foreign_keys(session,sample.sample_id, MiruProfile,Sample)
 
 
