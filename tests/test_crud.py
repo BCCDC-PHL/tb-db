@@ -316,8 +316,9 @@ class CgmlstAlleleProfileCrudMachine(RuleBasedStateMachine):
         }
         for idx, locus_id in enumerate(locus_ids):
             profile_dict['profile'][locus_id] = profile[idx]
-        
-        created_cgmlst_profile = crud.create_cgmlst_allele_profile(self.session, profile_dict)
+
+        cgmlst_scheme = {'name':'Ridom cgMLST.org','version':'2.1','num_loci':2891} 
+        created_cgmlst_profile = crud.create_cgmlst_allele_profile(self.session,cgmlst_scheme, profile_dict)
         json_serializable_cgmlst_profile = utils.row2dict(created_cgmlst_profile)
 
 
