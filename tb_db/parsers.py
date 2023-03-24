@@ -202,3 +202,96 @@ def parse_cgmlst(cgmlst_path: str, uncalled='-'):
             }
 
     return cgmlst_by_sample_id
+
+
+# libraries
+def parse_libraries(qc_path, locations_path):
+    qcs = []
+    #with open(args.qc, 'r') as f:
+    with open(qc_path, 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            qc = {
+                'sample_id': row['sample_id'],
+                'most_abundant_species_name':row['most_abundant_species_name'],
+                'most_abundant_species_fraction_total_reads': float(row['most_abundant_species_fraction_total_reads']),
+                'estimated_genome_size_bp': int(row['estimated_genome_size_bp']),
+                'estimated_depth_coverage': float(row['estimated_depth_coverage']),
+                'total_bases': int(row['total_bases']),
+                'average_base_quality': float(row['average_base_quality']),
+                'percent_bases_above_q30': float(row['percent_bases_above_q30']),
+                'percent_gc': float(row['percent_gc'])
+            }
+            qcs.append(qc)
+
+    locations = []
+    #with open(args.locations, 'r') as f:
+    with open(locations_path, 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            qc = [qc for qc in qcs if qc['sample_id'] == row['ID']]
+            #print(row['ID'])
+            #print(qc[0]['most_abundant_species_name'])
+            location = {
+                'sample_id': row['ID'][0:6],
+                'sequencing_run_id':row['R1'].split('/')[6],
+                'R1_location': row['R1'],
+                'R2_location': row['R2'],
+                'most_abundant_species_name': qc[0]['most_abundant_species_name'],
+                'most_abundant_species_fraction_total_reads': qc[0]['most_abundant_species_fraction_total_reads'],
+                'estimated_genome_size_bp': qc[0]['estimated_genome_size_bp'],
+                'estimated_depth_coverage': qc[0]['estimated_depth_coverage'],
+                'total_bases': qc[0]['total_bases'],
+                'average_base_quality': qc[0]['average_base_quality'],
+                'percent_bases_above_q30': qc[0]['percent_bases_above_q30'],
+                'percent_gc': qc[0]['percent_gc'],
+
+            }
+            locations.append(location)
+
+    return locations
+
+
+def parse_complex(complex_path):
+    complexes = []
+    #with open(args.qc, 'r') as f:
+    with open(complex_path, 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            complex = {
+                'sample_id': row['sample_id'],
+                'mtbc_prop' : row['MTBC'].replace('','0'),
+                'ntm_prop' : row['NTM'].replace('','0'),
+                'nonmycobacterium_prop' : row['non-mycobacterium'].replace('','0'),
+                'unclassified_prop' : row['unclassified'].replace('','0'),
+                'complex' : row['complex'],
+                'reason' : row['reason'],
+                'flag' : row['flag']
+            }
+            complexes.append(complex)
+    
+    return complexes
+
+def parse_species(speciation_path):
+    species = []
+    #with open(args.qc, 'r') as f:
+    with open(speciation_path, 'r') as f:
+        reader = csv.DictReader(f)
+        count = 0
+        for row in reader:
+            if count == 5: #get only top 5 
+                break
+            else:
+                speci = {
+                    'sample_id': row['sample_id'],
+                    'taxonomy_level' : row['taxonomy_lvl'],
+                    'name' : row['name'],
+                    'ncbi_taxonomy_id' : row['taxonomy_id'],
+                    'fraction_total_reads' : row['fraction_total_reads'],
+                    'num_assigned_reads' : row['kraken_assigned_reads']
+                    
+                }
+                species.append(speci)
+                count+=1
+    
+    return species

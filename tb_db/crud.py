@@ -1,6 +1,6 @@
 import json
 
-from sqlalchemy import select, delete, and_
+from sqlalchemy import select, delete, and_, update
 from sqlalchemy.orm import Session
 
 from .models import *
@@ -501,7 +501,6 @@ def get_cgmlst_cluster_by_sample_id(db: Session, sample_id: str):
         code = db.query(CgmlstCluster).get(cgmlst_cluster_id).cluster_id
         cgmlst_cluster_code.append(code)
 
-
     return cgmlst_cluster_code
 
 def create_libraries(db:Session, libraries: dict[str, object]):
@@ -588,3 +587,123 @@ def create_libraries(db:Session, libraries: dict[str, object]):
                     print("qc for sample "+ sample_id, " already exists in the database..")
 
     return db_created_libraries
+
+def create_complexes(db: Session, complexes: list[dict[str, object]]):
+    """
+    Create multiple tb complexes assignment table.
+
+    :param db: Database session.
+    :type db: sqlalchemy.orm.Session
+    :param complexes: List of dictionaries designating MTBC complex, NTM or non-mycobacteria.
+    :type complexes: list[dict[str, object]]
+    :return: Created tb complexes.
+    :rtype: list[models.TbComplex]
+    """
+    existing_samples = db.query(Sample).all()
+    existing_sample_ids = set([sample.sample_id for sample in existing_samples])
+
+    db_complexes = []
+    for complex in complexes:
+        #print(complex)
+        sample_id = complex['sample_id']
+        if sample_id not in existing_sample_ids:
+            db_sample = Sample(
+                sample_id = sample_id
+            )
+            db.add(db_sample)
+            db.commit()
+        stmt = select(Sample).where(Sample.sample_id == sample_id)
+        sample = db.scalars(stmt).one()
+        stmt = select(TbComplex).where(TbComplex.sample_id == sample.id) 
+        db_complex = db.scalars(stmt).one_or_none()
+
+        if db_complex:
+            db_complex.sample_id = sample.id
+            db_complex.mtbc_prop = complex['mtbc_prop']
+            db_complex.ntm_prop = complex['ntm_prop']
+            db_complex.nonmycobacterium_prop = complex['nonmycobacterium_prop']
+            db_complex.unclassified_prop = complex['unclassified_prop']
+            db_complex.complex = complex['complex']
+            db_complex.reason = complex['reason']
+            db_complex.flag = complex['flag']
+            db.commit()
+
+        else:
+            db_tb_complex = TbComplex(
+                sample_id = sample.id,
+                mtbc_prop = complex['mtbc_prop'],
+                ntm_prop = complex['ntm_prop'],
+                nonmycobacterium_prop = complex['nonmycobacterium_prop'],
+                unclassified_prop = complex['unclassified_prop'],
+                complex = complex['complex'],
+                reason = complex['reason'],
+                flag = complex['flag'],
+
+            )
+            db_complexes.append(db_tb_complex)
+            print(sample.tb_complex)
+            print(db_tb_complex)
+            sample.tb_complex.append(db_tb_complex)
+
+            db.add_all(db_complexes)
+            db.commit()
+
+    #for dc in db_complexes:
+    #    db.refresh(dc)
+
+    return db_complexes
+
+def create_species(db: Session, species: list[dict[str, object]]):
+    """
+    Create multiple tb species table.
+
+    :param db: Database session.
+    :type db: sqlalchemy.orm.Session
+    :param species: List of dictionaries designating MTBC complex, NTM or non-mycobacteria.
+    :type species: list[dict[str, object]]
+    :return: Created tb species.
+    :rtype: list[models.TbSpecies]
+    """
+    existing_samples = db.query(Sample).all()
+    existing_sample_ids = set([sample.sample_id for sample in existing_samples])
+    print(species[0]['sample_id'])
+    sample_id = species[0]['sample_id']
+    stmt = select(Sample).where(Sample.sample_id == sample_id)
+    sample = db.scalars(stmt).one()
+
+    stmt = select(TbSpecies).where(TbSpecies.sample_id == sample.id) 
+    db_species = db.scalars(stmt).fetchmany()
+
+    
+    db_created_species = []
+
+    if db_species: #if top5 species already exist, update
+        for i in range((len(species))):
+            print(i)
+            db_species[i].sample_id = sample.id
+            db_species[i].taxonomy_level = species[i]['taxonomy_level']
+            db_species[i].species_name = species[i]['name']
+            db_species[i].ncbi_taxonomy_id = species[i]['ncbi_taxonomy_id']
+            db_species[i].fraction_total_reads = species[i]['fraction_total_reads']
+            db_species[i].num_assigned_reads = species[i]['num_assigned_reads']
+            db.commit()
+    else:
+
+        for row in species:    
+            speci_created = TbSpecies(
+                    sample_id = sample.id,
+                
+                    taxonomy_level = row['taxonomy_level'],
+                    species_name = row['name'],
+                    ncbi_taxonomy_id = row['ncbi_taxonomy_id'],
+                    fraction_total_reads = row['fraction_total_reads'],
+                    num_assigned_reads = row['num_assigned_reads']
+                )
+            db_created_species.append(speci_created)
+        
+        db.add_all(db_created_species)
+        for ds in db_created_species:
+            sample.tb_species.append(ds)
+        db.commit()
+
+    return db_created_species

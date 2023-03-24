@@ -66,6 +66,9 @@ class Sample(Base):
     cgmlst_allele_profile = relationship("CgmlstAlleleProfile", cascade="all,delete")
     miru_profile = relationship("MiruProfile", cascade="all,delete")
 
+    tb_complex = relationship('TbComplex', cascade = "all,delete")
+    tb_species = relationship('TbSpecies', cascade = "all,delete")
+
 class Library(Base):
     """
     """
@@ -122,3 +125,22 @@ class CgmlstCluster(Base):
 class MiruCluster(Base):
 
     cluster_id = Column(String)
+
+class TbComplex(Base):
+    sample_id = Column(Integer, ForeignKey("sample.id"), nullable=False)
+    mtbc_prop = Column(Float)
+    ntm_prop = Column(Float)
+    nonmycobacterium_prop = Column(Float)
+    unclassified_prop = Column(Float)
+    complex = Column(String)
+    reason = Column(String)
+    flag = Column(String)
+
+
+class TbSpecies(Base):
+    sample_id = Column(Integer, ForeignKey("sample.id"), nullable=True)
+    taxonomy_level = Column(String)
+    species_name = Column(String)
+    ncbi_taxonomy_id = Column(Float)
+    fraction_total_reads = Column(Float)
+    num_assigned_reads = Column(Float)
