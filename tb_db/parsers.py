@@ -1,5 +1,6 @@
 import csv
 import datetime
+import json
 
 ### Samples
 def parse_samples(samples_path):
@@ -295,3 +296,17 @@ def parse_species(speciation_path):
                 count+=1
     
     return species
+
+def parse_amr_summary(amr_path):
+    
+    f = open(amr_path)
+  
+    # returns JSON object as 
+    # a dictionary
+    data = json.load(f)
+    print(data['timestamp'])
+    data['timestamp'] = datetime.datetime.strptime(data['timestamp'], "%d-%m-%Y %H:%M:%S")
+
+    f.close()
+
+    return data

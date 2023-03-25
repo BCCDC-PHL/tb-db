@@ -126,7 +126,9 @@ class MiruCluster(Base):
 
     cluster_id = Column(String)
 
+
 class TbComplex(Base):
+
     sample_id = Column(Integer, ForeignKey("sample.id"), nullable=False)
     mtbc_prop = Column(Float)
     ntm_prop = Column(Float)
@@ -138,9 +140,32 @@ class TbComplex(Base):
 
 
 class TbSpecies(Base):
-    sample_id = Column(Integer, ForeignKey("sample.id"), nullable=True)
+
+    sample_id = Column(Integer, ForeignKey("sample.id"), nullable= False)
     taxonomy_level = Column(String)
     species_name = Column(String)
     ncbi_taxonomy_id = Column(Float)
     fraction_total_reads = Column(Float)
     num_assigned_reads = Column(Float)
+
+
+class Drug(Base):
+
+    drug_id = Column(String)
+
+
+class AmrProfile(Base):
+
+    sample_id = Column(Integer, ForeignKey("sample.id"),nullable = False)
+    date = Column(Date)
+    dr_type = Column(String)
+    median_depth = Column(Integer)
+    tbprofiler_version = Column(JSON)
+
+    drug_mutation_profile = relationship("DrugMutationProfile", backref = 'amr_profile', cascade="all,delete")
+
+class DrugMutationProfile(Base):
+    #sample_id = Column(Integer, ForeignKey("sample.id"),nullable = False)
+    amr_id = Column(Integer, ForeignKey("amr_profile.id"), nullable= False)
+    drug = Column(Integer, ForeignKey("drug.id"), nullable = True)
+    mutation = Column(String)

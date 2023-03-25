@@ -666,7 +666,7 @@ def create_species(db: Session, species: list[dict[str, object]]):
     """
     existing_samples = db.query(Sample).all()
     existing_sample_ids = set([sample.sample_id for sample in existing_samples])
-    print(species[0]['sample_id'])
+    #print(species[0]['sample_id'])
     sample_id = species[0]['sample_id']
     stmt = select(Sample).where(Sample.sample_id == sample_id)
     sample = db.scalars(stmt).one()
@@ -707,3 +707,76 @@ def create_species(db: Session, species: list[dict[str, object]]):
         db.commit()
 
     return db_created_species
+
+
+def create_amr_summary(db: Session, amr_report: list[dict[str, object]]):
+    #creating models for amr and drug resistance
+    #amr is one to one relationship with sample
+    #whereas drug resistance is one to many
+    existing_samples = db.query(Sample).all()
+    existing_sample_ids = set([sample.sample_id for sample in existing_samples])
+    #print(species[0]['sample_id'])
+    sample_id = amr_report['id']
+    stmt = select(Sample).where(Sample.sample_id == sample_id)
+    sample = db.scalars(stmt).one()
+
+    stmt = select(AmrProfile).where(AmrProfile.sample_id == sample.id) 
+    db_amr_profile = db.scalars(stmt).one_or_none()
+
+    created_amr_profiles = []
+
+    if not db_amr_profile:
+
+        created_amr = AmrProfile(
+            sample_id = sample.id,
+            date = amr_report['timestamp'],
+            dr_type = amr_report['drtype'],
+            median_depth = amr_report['qc']['median_coverage'],
+            tbprofiler_version = amr_report['db_version']
+        )
+        db.add(created_amr)
+        db.commit()
+        print(created_amr.id)
+
+
+        for dr_variant in amr_report['dr_variants']:
+
+            for drug in dr_variant['drugs']:
+
+                existing_drugs = db.query(Drug).all()
+                existing_drugs_ids = set([drug.drug_id for drug in existing_drugs])
+
+                amr_drug = drug['drug']
+                if amr_drug not in existing_drugs_ids:
+                    db_created_drug = Drug(
+                        drug_id = amr_drug
+                    )
+                    db.add(db_created_drug)
+                    db.commit()
+
+                stmt = select(Drug).where(Drug.drug_id == amr_drug)
+                db_drug = db.scalars(stmt).one_or_none()
+
+                created_resistance_profile = DrugMutationProfile(
+                    amr_id = created_amr.id,
+                    drug = db_drug.id,
+                    mutation = dr_variant['gene'] +' ' + dr_variant['nucleotide_change'] + ' ('+ str(dr_variant['freq']) +')'
+
+                )
+
+                db.add(created_resistance_profile)
+                db.commit()
+
+                created_amr.drug_mutation_profile.append(created_resistance_profile)
+
+        db.commit()
+
+        created_amr_profiles.append(created_amr)
+
+    return created_amr_profiles
+
+
+
+
+    
+    
