@@ -11,7 +11,7 @@ import tb_db.parsers as parsers
 import tb_db.crud as crud
 
 from tb_db.models import Sample
-
+from tb_db.models import Library
 
 def main(args):
     with open(args.config, 'r') as f:
@@ -22,16 +22,17 @@ def main(args):
     session = Session()
 
 
-    parsed_complex = parsers.parse_complex(args.complex)
+    parsed_complex = parsers.parse_complex(args.input)
 
-    created_complexes = crud.create_complexes(session, parsed_complex)
+    sample_run = parsers.parse_run_ids(args.locations)
+    created_complexes = crud.create_complexes(session, parsed_complex,sample_run)
 
     #created_species = crud.create_species(session,)
 
     for created_complex in created_complexes:
-        stmt = select(Sample).where(Sample.id == created_complex.sample_id)
+        stmt = select(Library).where(Library.id == created_complex.library_id)
         sample = session.scalars(stmt).one()
-        print("Created complex for: " + sample.sample_id)
+        print("Created complex for: " + sample.samples.sample_id)
 
 
 
@@ -39,8 +40,8 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--complex')
-    #parser.add_argument('--speciation')
+    parser.add_argument('input')
+    parser.add_argument('--locations')
     parser.add_argument('-c', '--config', help="config file (JSON format))")
     args = parser.parse_args()
     main(args)

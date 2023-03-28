@@ -115,7 +115,7 @@ def delete_sample(db: Session, sample_id: str):
 
 
 ### cgMLST
-def create_cgmlst_allele_profile(db: Session, scheme: dict, cgmlst_allele_profile: dict[str, object]):
+def create_cgmlst_allele_profile(db: Session, scheme: dict, cgmlst_allele_profile: dict[str, object],runid):
     """
     Create a single cgMLST allele profile record.
 
@@ -148,16 +148,30 @@ def create_cgmlst_allele_profile(db: Session, scheme: dict, cgmlst_allele_profil
         db.commit()
     stmt = select(Sample).where(Sample.sample_id == sample_id)
     sample = db.scalars(stmt).one()
+    library = [lib for lib in sample.library if lib.sequencing_run_id == runid][0]
     stmt = select(CgmlstScheme).where(CgmlstScheme.name == scheme['name'])
     scheme_ins = db.scalars(stmt).one()
     db_cgmlst_allele_profile = CgmlstAlleleProfile(
-        sample_id = sample.id,
+        sample_id = library.id,
         profile = json.dumps(cgmlst_allele_profile['profile']),
         percent_called = cgmlst_allele_profile['percent_called'],
         cgmlst_scheme_id = scheme_ins.id
     )
 
-    db.add(db_cgmlst_allele_profile)
+    select_cgmlst_profile_stmt = select(CgmlstAlleleProfile).where(CgmlstAlleleProfile.library_id == library.id)
+    existing_profile_for_sample = db.scalars(select_cgmlst_profile_stmt).one_or_none()
+
+    if existing_profile_for_sample is not None:
+
+        existing_profile_for_sample.percent_called = db_cgmlst_allele_profile.percent_called
+        existing_profile_for_sample.profile = db_cgmlst_allele_profile.profile
+        db.commit()
+        db.refresh(existing_profile_for_sample)
+
+    else:
+        db.add(db_cgmlst_allele_profile)
+
+    
     db.commit()
     db.refresh(db_cgmlst_allele_profile)
 
@@ -193,12 +207,12 @@ def create_cgmlst_allele_profiles(db: Session, scheme: dict, cgmlst_allele_profi
     db_cgmlst_allele_profiles = []
     for cgmlst_allele_profile in cgmlst_allele_profiles:
         sample_id = cgmlst_allele_profile['sample_id']
-        #if sample_id not in existing_sample_ids:
-        #    db_sample = Sample(
-        #        sample_id = sample_id
-        #    )
-        #    db.add(db_sample)
-        #    db.commit()
+        if sample_id not in existing_sample_ids:
+            db_sample = Sample(
+                sample_id = sample_id
+            )
+            db.add(db_sample)
+            db.commit()
         stmt = select(Sample).where(Sample.sample_id == sample_id)
         sample = db.scalars(stmt).one()
 
@@ -210,19 +224,18 @@ def create_cgmlst_allele_profiles(db: Session, scheme: dict, cgmlst_allele_profi
             percent_called = cgmlst_allele_profile['percent_called'],
             cgmlst_scheme_id = scheme_ins.id
         )
-        #db_cgmlst_allele_profiles.append(db_cgmlst_allele_profile)
+        
 
         select_cgmlst_profile_stmt = select(CgmlstAlleleProfile).where(CgmlstAlleleProfile.library_id == library.id)
         existing_profile_for_sample = db.scalars(select_cgmlst_profile_stmt).one_or_none()
 
         if existing_profile_for_sample is not None:
-            #existing_profile_for_sample.library_id = db_cgmlst_allele_profile.library_id
-            #existing_profile_for_sample.cgmlst_scheme_id = db_cgmlst_allele_profile.cgmlst_scheme_id
+
             existing_profile_for_sample.percent_called = db_cgmlst_allele_profile.percent_called
             existing_profile_for_sample.profile = db_cgmlst_allele_profile.profile
             db.commit()
             db.refresh(existing_profile_for_sample)
-            #created_miru_profiles.append(existing_profile_for_sample)
+
         else:
             db_cgmlst_allele_profiles.append(db_cgmlst_allele_profile)
 
@@ -416,7 +429,7 @@ def get_miru_cluster_by_sample_id(db: Session, sample_id: str):
     query_result = db.query(Sample).filter(
         Sample.sample_id == sample_id
     )
-    miru_clusters = query_result.one_or_none().miru_cluster
+    miru_clusters = query_result.one_or_none().library.miru_cluster
     
     miru_cluster_code = []
     for row in miru_clusters:
@@ -428,7 +441,7 @@ def get_miru_cluster_by_sample_id(db: Session, sample_id: str):
 
 
 ### cgmlst
-def add_samples_to_cgmlst_clusters(db: Session, cgmlst_cluster: list[dict[str, object]]):
+def add_samples_to_cgmlst_clusters(db: Session, cgmlst_cluster: list[dict[str, object]], runs: dict[str,str]):
     """
     Create multiple cgmlst clusters, for sample specified by `sample_id`.
 
@@ -460,20 +473,22 @@ def add_samples_to_cgmlst_clusters(db: Session, cgmlst_cluster: list[dict[str, o
         select_cgmlst_cluster_stmt = select(CgmlstCluster).where(CgmlstCluster.cluster_id == cluster_id)
         db_cgmlst_cluster = db.scalars(select_cgmlst_cluster_stmt).one()
         if sample_id not in existing_sample_ids:
-            logging.warning('cannot add cgmlst cluster for a sample that does not exist...')         
+            logging.warning('cannot add cgmlst cluster for a sample that does not exist...')
+            return None         
         else:
             select_sample_stmt = select(Sample).where(Sample.sample_id == sample_id)
             sample = db.scalars(select_sample_stmt).one()
+            library = [lib for lib in sample.library if lib.sequencing_run_id == runs[sample_id]][0]
         
-        sample.cgmlst_cluster.append(db_cgmlst_cluster)
-        db.add(sample,db_cgmlst_cluster)
-        db_samples.append(sample)
-        db.commit()
+            library.cgmlst_cluster.append(db_cgmlst_cluster)
+            #db.add(sample,db_cgmlst_cluster)
+            db_samples.append(library)
+            db.commit()
 
     return db_samples
 
 ### cgmlst
-def add_sample_to_cgmlst_cluster(db: Session, sample_id: str, cgmlst_cluster: dict[str, object]):
+def add_sample_to_cgmlst_cluster(db: Session, sample_id: str, cgmlst_cluster: dict[str, object], runid):
 
     existing_samples = db.query(Sample).all()
     existing_sample_ids = set([sample.sample_id for sample in existing_samples])
@@ -500,7 +515,8 @@ def add_sample_to_cgmlst_cluster(db: Session, sample_id: str, cgmlst_cluster: di
     else:
         select_sample_stmt = select(Sample).where(Sample.sample_id == sample_id)
         sample = db.scalars(select_sample_stmt).one()
-        sample.cgmlst_cluster.append(db_cgmlst_cluster)
+        library = [lib for lib in sample.library if lib.sequencing_run_id == runid][0]
+        library.cgmlst_cluster.append(db_cgmlst_cluster)
         db.commit()
 
         return sample
@@ -511,7 +527,7 @@ def get_cgmlst_cluster_by_sample_id(db: Session, sample_id: str):
     query_result = db.query(Sample).filter(
         Sample.sample_id == sample_id
     )
-    cgmlst_clusters = query_result.one_or_none().cgmlst_cluster
+    cgmlst_clusters = query_result.one_or_none().library.cgmlst_cluster
     
     cgmlst_cluster_code = []
     for row in cgmlst_clusters:
@@ -547,7 +563,6 @@ def create_libraries(db:Session, libraries: dict[str, object]):
             library_created = Library(
                     sample_id = sample.id,
                     sequencing_run_id = row['sequencing_run_id'],
-                    #library_id = Column(String)
                     most_abundant_species_name = row['most_abundant_species_name'],
                     most_abundant_species_fraction_total_reads = row['most_abundant_species_fraction_total_reads'],
                     estimated_genome_size_bp = row['estimated_genome_size_bp'],
@@ -556,8 +571,7 @@ def create_libraries(db:Session, libraries: dict[str, object]):
                     average_base_quality = row['average_base_quality'],
                     percent_bases_above_q30 = row['percent_bases_above_q30'],
                     percent_gc = row['percent_gc']
-                    #R1_location = row['R1_location'],
-                    #R2_location = row['R2_location']
+
                 )
             db_created_libraries.append(library_created)
             db.add_all(db_created_libraries)
@@ -570,8 +584,7 @@ def create_libraries(db:Session, libraries: dict[str, object]):
                 libraries_json = {}
                 libraries_json['sample_id'] = sample_id
                 libraries_json['sequencing_run_id'] = i.sequencing_run_id
-                #libraries_json['R1_location'] = i.R1_location
-                #libraries_json['R2_location'] = i.R2_location
+
                 libraries_json['most_abundant_species_name'] = i.most_abundant_species_name
                 libraries_json['most_abundant_species_fraction_total_reads'] = i.most_abundant_species_fraction_total_reads
                 libraries_json['estimated_genome_size_bp'] = i.estimated_genome_size_bp
@@ -607,7 +620,7 @@ def create_libraries(db:Session, libraries: dict[str, object]):
 
     return db_created_libraries
 
-def create_complexes(db: Session, complexes: list[dict[str, object]]):
+def create_complexes(db: Session, complexes: list[dict[str, object]], runs:dict[str,str]):
     """
     Create multiple tb complexes assignment table.
 
@@ -633,11 +646,13 @@ def create_complexes(db: Session, complexes: list[dict[str, object]]):
             db.commit()
         stmt = select(Sample).where(Sample.sample_id == sample_id)
         sample = db.scalars(stmt).one()
-        stmt = select(TbComplex).where(TbComplex.sample_id == sample.id) 
-        db_complex = db.scalars(stmt).one_or_none()
+        library = [lib for lib in sample.library if lib.sequencing_run_id == runs[sample_id]][0]
+        #stmt = select(TbComplex).where(TbComplex.library_id == library.id) 
+        #db_complex = db.scalars(stmt).one_or_none()
+        db_complex = library.tb_complex
 
         if db_complex:
-            db_complex.sample_id = sample.id
+            db_complex.library_id = library.id
             db_complex.mtbc_prop = complex['mtbc_prop']
             db_complex.ntm_prop = complex['ntm_prop']
             db_complex.nonmycobacterium_prop = complex['nonmycobacterium_prop']
@@ -649,7 +664,7 @@ def create_complexes(db: Session, complexes: list[dict[str, object]]):
 
         else:
             db_tb_complex = TbComplex(
-                sample_id = sample.id,
+                library_id = library.id,
                 mtbc_prop = complex['mtbc_prop'],
                 ntm_prop = complex['ntm_prop'],
                 nonmycobacterium_prop = complex['nonmycobacterium_prop'],
@@ -660,19 +675,14 @@ def create_complexes(db: Session, complexes: list[dict[str, object]]):
 
             )
             db_complexes.append(db_tb_complex)
-            print(sample.tb_complex)
-            print(db_tb_complex)
-            sample.tb_complex.append(db_tb_complex)
+            library.tb_complex.append(db_tb_complex)
 
-            db.add_all(db_complexes)
-            db.commit()
-
-    #for dc in db_complexes:
-    #    db.refresh(dc)
+    db.add_all(db_complexes)
+    db.commit()
 
     return db_complexes
 
-def create_species(db: Session, species: list[dict[str, object]]):
+def create_species(db: Session, species: list[dict[str, object]],runs:dict[str,str]):
     """
     Create multiple tb species table.
 
@@ -689,17 +699,17 @@ def create_species(db: Session, species: list[dict[str, object]]):
     sample_id = species[0]['sample_id']
     stmt = select(Sample).where(Sample.sample_id == sample_id)
     sample = db.scalars(stmt).one()
-
-    stmt = select(TbSpecies).where(TbSpecies.sample_id == sample.id) 
-    db_species = db.scalars(stmt).fetchmany()
-
+    library = [lib for lib in sample.library if lib.sequencing_run_id == runs[sample_id]][0]
+    #stmt = select(TbSpecies).where(TbSpecies.sample_id == sample.id) 
+    #db_species = db.scalars(stmt).fetchmany()
+    db_species = library.tb_species
     
     db_created_species = []
 
     if db_species: #if top5 species already exist, update
         for i in range((len(species))):
             print(i)
-            db_species[i].sample_id = sample.id
+            db_species[i].library_id = library.id
             db_species[i].taxonomy_level = species[i]['taxonomy_level']
             db_species[i].species_name = species[i]['name']
             db_species[i].ncbi_taxonomy_id = species[i]['ncbi_taxonomy_id']
@@ -710,7 +720,7 @@ def create_species(db: Session, species: list[dict[str, object]]):
 
         for row in species:    
             speci_created = TbSpecies(
-                    sample_id = sample.id,
+                    library_id = library.id,
                 
                     taxonomy_level = row['taxonomy_level'],
                     species_name = row['name'],
@@ -721,76 +731,81 @@ def create_species(db: Session, species: list[dict[str, object]]):
             db_created_species.append(speci_created)
         
         db.add_all(db_created_species)
+
         for ds in db_created_species:
-            sample.tb_species.append(ds)
+            library.tb_species.append(ds)
         db.commit()
 
     return db_created_species
 
 
-def create_amr_summary(db: Session, amr_report: list[dict[str, object]]):
+def create_amr_summary(db: Session, amr_report: list[dict[str, object]], runs:dict[str,str]):
     #creating models for amr and drug resistance
     #amr is one to one relationship with sample
     #whereas drug resistance is one to many
     existing_samples = db.query(Sample).all()
     existing_sample_ids = set([sample.sample_id for sample in existing_samples])
-    #print(species[0]['sample_id'])
     sample_id = amr_report['id']
     stmt = select(Sample).where(Sample.sample_id == sample_id)
     sample = db.scalars(stmt).one()
 
-    stmt = select(AmrProfile).where(AmrProfile.sample_id == sample.id) 
-    db_amr_profile = db.scalars(stmt).one_or_none()
+    library = [lib for lib in sample.library if lib.sequencing_run_id == runs[sample_id]][0]
+
+    db_amr_profile = library.amr_profile
+    
 
     created_amr_profiles = []
 
     if not db_amr_profile:
 
         created_amr = AmrProfile(
-            sample_id = sample.id,
+            library_id = library.id,
             date = amr_report['timestamp'],
             dr_type = amr_report['drtype'],
             median_depth = amr_report['qc']['median_coverage'],
             tbprofiler_version = amr_report['db_version']
         )
         db.add(created_amr)
+        library.amr_profile.append(created_amr)
         db.commit()
-        print(created_amr.id)
+        created_amr_profiles.append(created_amr)
+
+    db_amr_profile = library.amr_profile[0]
 
 
-        for dr_variant in amr_report['dr_variants']:
+    for dr_variant in amr_report['dr_variants']: 
 
-            for drug in dr_variant['drugs']:
+        for drug in dr_variant['drugs']:
 
-                existing_drugs = db.query(Drug).all()
-                existing_drugs_ids = set([drug.drug_id for drug in existing_drugs])
+            existing_drugs = db.query(Drug).all()
+            existing_drugs_ids = set([drug.drug_id for drug in existing_drugs])
 
-                amr_drug = drug['drug']
-                if amr_drug not in existing_drugs_ids:
-                    db_created_drug = Drug(
-                        drug_id = amr_drug
-                    )
-                    db.add(db_created_drug)
-                    db.commit()
-
-                stmt = select(Drug).where(Drug.drug_id == amr_drug)
-                db_drug = db.scalars(stmt).one_or_none()
-
-                created_resistance_profile = DrugMutationProfile(
-                    amr_id = created_amr.id,
-                    drug = db_drug.id,
-                    mutation = dr_variant['gene'] +' ' + dr_variant['nucleotide_change'] + ' ('+ str(dr_variant['freq']) +')'
-
+            amr_drug = drug['drug']
+            if amr_drug not in existing_drugs_ids:
+                db_created_drug = Drug(
+                    drug_id = amr_drug
                 )
-
-                db.add(created_resistance_profile)
+                db.add(db_created_drug)
                 db.commit()
 
-                created_amr.drug_mutation_profile.append(created_resistance_profile)
+            stmt = select(Drug).where(Drug.drug_id == amr_drug)
+            db_drug = db.scalars(stmt).one_or_none()
+
+            created_resistance_profile = DrugMutationProfile(
+                amr_id = db_amr_profile.id,
+                drug = db_drug.id,
+                mutation = dr_variant['gene'] +' ' + dr_variant['nucleotide_change'] + ' ('+ str(dr_variant['freq']) +')'
+
+            )
+            print(created_resistance_profile)
+            db.add(created_resistance_profile)
+            db.commit()
+
+            db_amr_profile.drug_mutation_profile.append(created_resistance_profile)
 
         db.commit()
 
-        created_amr_profiles.append(created_amr)
+        
 
     return created_amr_profiles
 

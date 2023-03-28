@@ -30,7 +30,7 @@ def main(args):
 
     sample_run = parsers.parse_run_ids(args.locations)
 
-    print(sample_run)
+    #print(sample_run)
 
 
 

@@ -26,7 +26,7 @@ def parse_cgmlst_cluster(samples_path):
         for row in reader:
 
             sample = {
-                'sample_id': row['sample_id'],
+                'sample_id': row['sample_id'][:6],
                 'cluster':row['clusters_cgmlst'],
             }
             samples.append(sample)
@@ -243,6 +243,7 @@ def parse_libraries(qc_path, locations_path):
         for row in reader:
             qc = [qc for qc in qcs if qc['sample_id'] == row['ID']]
             #print(row['ID'])
+            print(qc)
             #print(qc[0]['most_abundant_species_name'])
             location = {
                 'sample_id': row['ID'][0:6],
@@ -263,26 +264,34 @@ def parse_libraries(qc_path, locations_path):
 
     return locations
 
+def dict_clean(items):
+    result = {}
+    for key, value in items:
+        if value == '':
+            value = '0'
+        result[key] = value
+    return result
 
 def parse_complex(complex_path):
     complexes = []
-    #with open(args.qc, 'r') as f:
     with open(complex_path, 'r') as f:
         reader = csv.DictReader(f)
-        for row in reader:
+        for row in reader:   
             complex = {
-                'sample_id': row['sample_id'],
-                'mtbc_prop' : row['MTBC'].replace('','0'),
-                'ntm_prop' : row['NTM'].replace('','0'),
-                'nonmycobacterium_prop' : row['non-mycobacterium'].replace('','0'),
-                'unclassified_prop' : row['unclassified'].replace('','0'),
+                'sample_id': row['sample_id'][:6],
+                'mtbc_prop' : row['MTBC'],
+                'ntm_prop' : row['NTM'],
+                'nonmycobacterium_prop' : row['non-mycobacterium'],
+                'unclassified_prop' : row['unclassified'],
                 'complex' : row['complex'],
                 'reason' : row['reason'],
                 'flag' : row['flag']
             }
             complexes.append(complex)
-    
-    return complexes
+        dict_str = json.dumps(complexes)
+        my_dict = json.loads(dict_str, object_pairs_hook=dict_clean)
+
+    return my_dict
 
 def parse_species(speciation_path):
     species = []
@@ -295,7 +304,7 @@ def parse_species(speciation_path):
                 break
             else:
                 speci = {
-                    'sample_id': row['sample_id'],
+                    'sample_id': row['sample_id'][:6],
                     'taxonomy_level' : row['taxonomy_lvl'],
                     'name' : row['name'],
                     'ncbi_taxonomy_id' : row['taxonomy_id'],

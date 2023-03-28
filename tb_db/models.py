@@ -49,7 +49,7 @@ association_table_cgmlst = Table(
 association_table_miru = Table(
     "association_table_miru",
     Base.metadata,
-    Column("library_id", ForeignKey("library.id"), primary_key=True),
+    Column("sample_id", ForeignKey("sample.id"), primary_key=True),
     Column("miru_cluster_id", ForeignKey("miru_cluster.id"), primary_key=True),
 )
 
@@ -61,6 +61,9 @@ class Sample(Base):
     collection_date = Column(Date)
 
     library = relationship("Library", backref = 'samples')
+    miru_profile = relationship("MiruProfile", backref = 'samples', cascade="all,delete")
+    miru_cluster = relationship("MiruCluster", secondary=association_table_miru, backref ='samples', cascade="all, delete")
+
 
 
 class Library(Base):
@@ -81,13 +84,13 @@ class Library(Base):
 
 
     cgmlst_cluster = relationship("CgmlstCluster", secondary=association_table_cgmlst, backref = 'libraries', cascade="all, delete")
-    miru_cluster = relationship("MiruCluster", secondary=association_table_miru, backref ='libraries', cascade="all, delete")
 
     cgmlst_allele_profile = relationship("CgmlstAlleleProfile", backref = 'libraries', cascade="all,delete")
-    miru_profile = relationship("MiruProfile", backref = 'libraries', cascade="all,delete")
+    
 
     tb_complex = relationship('TbComplex',backref = 'libraries', cascade = "all,delete")
     tb_species = relationship('TbSpecies',backref = 'libraries', cascade = "all,delete")
+    amr_profile = relationship('AmrProfile', backref = 'libraries',cascade = "all,delete")
 
 
 
@@ -114,7 +117,7 @@ class MiruProfile(Base):
     """
     """
 
-    library_id = Column(Integer, ForeignKey("library.id"), nullable=False)
+    sample_id = Column(Integer, ForeignKey("sample.id"), nullable=False)
     percent_called = Column(Float)
     profile_by_position = Column(JSON)
     miru_pattern = Column(String)
