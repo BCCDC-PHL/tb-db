@@ -185,6 +185,7 @@ def parse_cgmlst(cgmlst_path: str, uncalled='-'):
         reader = csv.DictReader(f)
         for row in reader:
             sample_id = row.pop('sample_id')
+            sample_id = sample_id[:6]
             profile = row
             num_total_loci = len(row)
             num_uncalled_loci = 0
@@ -203,6 +204,16 @@ def parse_cgmlst(cgmlst_path: str, uncalled='-'):
             }
 
     return cgmlst_by_sample_id
+
+def parse_run_ids(locations_path):
+
+    #sample_run = []
+    with open(locations_path, 'r') as f:
+        reader = csv.DictReader(f)
+        runs = {rows['ID'][:6]:rows['R1'].split('/')[6] for rows in reader}
+
+    
+    return runs
 
 
 # libraries

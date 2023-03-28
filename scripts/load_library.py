@@ -21,7 +21,7 @@ def main(args):
     session = Session()
 
 
-    parsed_libraries = parse_libraries(args.qc, args.locations)
+    parsed_libraries = parsers.parse_libraries(args.qc, args.locations)
 
     created_libraries = crud.create_libraries(session,parsed_libraries)
 

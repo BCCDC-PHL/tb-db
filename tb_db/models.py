@@ -42,14 +42,14 @@ Base = declarative_base(cls=Base)
 association_table_cgmlst = Table(
     "association_table_cgmlst",
     Base.metadata,
-    Column("sample_id", ForeignKey("sample.id")),
+    Column("library_id", ForeignKey("library.id")),
     Column("cgmlst_cluster_id", ForeignKey("cgmlst_cluster.id")),
 )
 
 association_table_miru = Table(
     "association_table_miru",
     Base.metadata,
-    Column("sample_id", ForeignKey("sample.id"), primary_key=True),
+    Column("library_id", ForeignKey("library.id"), primary_key=True),
     Column("miru_cluster_id", ForeignKey("miru_cluster.id"), primary_key=True),
 )
 
@@ -60,14 +60,8 @@ class Sample(Base):
     accession = Column(String)
     collection_date = Column(Date)
 
-    cgmlst_cluster = relationship("CgmlstCluster", secondary=association_table_cgmlst, backref = 'samples', cascade="all, delete")
-    miru_cluster = relationship("MiruCluster", secondary=association_table_miru, backref='samples', cascade="all, delete")
+    library = relationship("Library", backref = 'samples')
 
-    cgmlst_allele_profile = relationship("CgmlstAlleleProfile", cascade="all,delete")
-    miru_profile = relationship("MiruProfile", cascade="all,delete")
-
-    tb_complex = relationship('TbComplex', cascade = "all,delete")
-    tb_species = relationship('TbSpecies', cascade = "all,delete")
 
 class Library(Base):
     """
@@ -84,8 +78,17 @@ class Library(Base):
     average_base_quality = Column(Float)
     percent_bases_above_q30 = Column(Float)
     percent_gc = Column(Float)
-    R1_location = Column(String)
-    R2_location = Column(String)
+
+
+    cgmlst_cluster = relationship("CgmlstCluster", secondary=association_table_cgmlst, backref = 'libraries', cascade="all, delete")
+    miru_cluster = relationship("MiruCluster", secondary=association_table_miru, backref ='libraries', cascade="all, delete")
+
+    cgmlst_allele_profile = relationship("CgmlstAlleleProfile", backref = 'libraries', cascade="all,delete")
+    miru_profile = relationship("MiruProfile", backref = 'libraries', cascade="all,delete")
+
+    tb_complex = relationship('TbComplex',backref = 'libraries', cascade = "all,delete")
+    tb_species = relationship('TbSpecies',backref = 'libraries', cascade = "all,delete")
+
 
 
 class CgmlstScheme(Base):
@@ -101,7 +104,7 @@ class CgmlstAlleleProfile(Base):
     """
     """
 
-    sample_id = Column(Integer, ForeignKey("sample.id"), nullable=False)
+    library_id = Column(Integer, ForeignKey("library.id"), nullable=False)
     cgmlst_scheme_id = Column(Integer, ForeignKey("cgmlst_scheme.id"), nullable=True)
     percent_called = Column(Float)
     profile = Column(JSON)
@@ -111,7 +114,7 @@ class MiruProfile(Base):
     """
     """
 
-    sample_id = Column(Integer, ForeignKey("sample.id"), nullable=False)
+    library_id = Column(Integer, ForeignKey("library.id"), nullable=False)
     percent_called = Column(Float)
     profile_by_position = Column(JSON)
     miru_pattern = Column(String)
@@ -129,7 +132,7 @@ class MiruCluster(Base):
 
 class TbComplex(Base):
 
-    sample_id = Column(Integer, ForeignKey("sample.id"), nullable=False)
+    library_id = Column(Integer, ForeignKey("library.id"), nullable=False)
     mtbc_prop = Column(Float)
     ntm_prop = Column(Float)
     nonmycobacterium_prop = Column(Float)
@@ -141,7 +144,7 @@ class TbComplex(Base):
 
 class TbSpecies(Base):
 
-    sample_id = Column(Integer, ForeignKey("sample.id"), nullable= False)
+    library_id = Column(Integer, ForeignKey("library.id"), nullable= False)
     taxonomy_level = Column(String)
     species_name = Column(String)
     ncbi_taxonomy_id = Column(Float)
@@ -156,7 +159,7 @@ class Drug(Base):
 
 class AmrProfile(Base):
 
-    sample_id = Column(Integer, ForeignKey("sample.id"),nullable = False)
+    library_id = Column(Integer, ForeignKey("library.id"),nullable = False)
     date = Column(Date)
     dr_type = Column(String)
     median_depth = Column(Integer)

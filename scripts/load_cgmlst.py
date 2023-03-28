@@ -11,6 +11,7 @@ import tb_db.parsers as parsers
 import tb_db.crud as crud
 
 from tb_db.models import Sample
+from tb_db.models import Library
 from tb_db.models import MiruProfile
 from tb_db.models import CgmlstScheme
 
@@ -26,19 +27,26 @@ def main(args):
     cgmlst_by_sample_id = parsers.parse_cgmlst(args.input)
     cgmlst_profiles = list(cgmlst_by_sample_id.values())
     cgmlst_scheme = {'name':'Ridom cgMLST.org','version':'2.1','num_loci':2891} 
-    created_profiles = crud.create_cgmlst_allele_profiles(session, cgmlst_scheme, cgmlst_profiles)
+
+    sample_run = parsers.parse_run_ids(args.locations)
+
+    print(sample_run)
+
+
+
+    created_profiles = crud.create_cgmlst_allele_profiles(session, cgmlst_scheme, cgmlst_profiles, sample_run)
 
     for profile in created_profiles:
-        stmt = select(Sample).where(Sample.id == profile.sample_id)
-        sample = session.scalars(stmt).one()
-        print("Created profile for sample: " + sample.sample_id)
-        #print("Updating Parent links..")
-        #crud.update_link_foreign_keys(session,sample.sample_id, MiruProfile,Sample)
+        stmt = select(Library).where(Library.id == profile.library_id)
+        library = session.scalars(stmt).one()
+        print("Created profile for sample: " + library.samples.sample_id)
+
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('input')
+    parser.add_argument('--locations')
     parser.add_argument('-c', '--config', help="config file (JSON format))")
     args = parser.parse_args()
     main(args)
