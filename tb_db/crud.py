@@ -152,7 +152,7 @@ def create_cgmlst_allele_profile(db: Session, scheme: dict, cgmlst_allele_profil
     stmt = select(CgmlstScheme).where(CgmlstScheme.name == scheme['name'])
     scheme_ins = db.scalars(stmt).one()
     db_cgmlst_allele_profile = CgmlstAlleleProfile(
-        sample_id = library.id,
+        library_id = library.id,
         profile = json.dumps(cgmlst_allele_profile['profile']),
         percent_called = cgmlst_allele_profile['percent_called'],
         cgmlst_scheme_id = scheme_ins.id
@@ -429,13 +429,20 @@ def get_miru_cluster_by_sample_id(db: Session, sample_id: str):
     query_result = db.query(Sample).filter(
         Sample.sample_id == sample_id
     )
-    miru_clusters = query_result.one_or_none().library.miru_cluster
+    miru_clusters = query_result.one_or_none().miru_cluster
     
     miru_cluster_code = []
     for row in miru_clusters:
         miru_cluster_id = row.id
         code = db.query(MiruCluster).get(miru_cluster_id).cluster_id
         miru_cluster_code.append(code)
+    #miru_cluster_code = []
+    #for i in query_result.one_or_none().library:
+    #    cluster = i.miru_cluster
+    #    for row in cluster:
+    #        miru_cluster_id = row.id
+    #        code = db.query(MiruCluster).get(miru_cluster_id).cluster_id
+    #        miru_cluster_code.append(code)
 
     return miru_cluster_code
 
@@ -527,13 +534,21 @@ def get_cgmlst_cluster_by_sample_id(db: Session, sample_id: str):
     query_result = db.query(Sample).filter(
         Sample.sample_id == sample_id
     )
-    cgmlst_clusters = query_result.one_or_none().library.cgmlst_cluster
-    
+
     cgmlst_cluster_code = []
-    for row in cgmlst_clusters:
-        cgmlst_cluster_id = row.id
-        code = db.query(CgmlstCluster).get(cgmlst_cluster_id).cluster_id
-        cgmlst_cluster_code.append(code)
+    for i in query_result.one_or_none().library:
+        cluster = i.cgmlst_cluster
+        for row in cluster:
+            cgmlst_cluster_id = row.id
+            code = db.query(CgmlstCluster).get(cgmlst_cluster_id).cluster_id
+            cgmlst_cluster_code.append(code)
+    #cgmlst_clusters = query_result.one_or_none().library.cgmlst_cluster
+    
+    #cgmlst_cluster_code = []
+    #for row in cgmlst_clusters:
+    #    cgmlst_cluster_id = row.id
+    #    code = db.query(CgmlstCluster).get(cgmlst_cluster_id).cluster_id
+    #    cgmlst_cluster_code.append(code)
 
     return cgmlst_cluster_code
 
