@@ -125,6 +125,7 @@ class TestCrudSample(unittest.TestCase):
         created_sample = crud.create_sample(self.session, sample_dict)
         libraries = [{
             'sample_id': 'SAM001',
+            'sample_name' : 'SAM001',
             'sequencing_run_id':'TESTABC',
             #'estimated_depth_coverage':40,
             'most_abundant_species_name':'mtb',
