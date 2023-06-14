@@ -225,6 +225,7 @@ def parse_libraries(qc_path, locations_path):
         for row in reader:
             qc = {
                 'sample_id': row['sample_id'],
+                'sample_name': row['sample_id'],
                 'most_abundant_species_name':row['most_abundant_species_name'],
                 'most_abundant_species_fraction_total_reads': float(row['most_abundant_species_fraction_total_reads']),
                 'estimated_genome_size_bp': int(row['estimated_genome_size_bp']),
@@ -247,6 +248,7 @@ def parse_libraries(qc_path, locations_path):
             #print(qc[0]['most_abundant_species_name'])
             location = {
                 'sample_id': row['ID'][0:6],
+                'sample_name': row['ID'],
                 'sequencing_run_id':row['R1'].split('/')[6],
                 'R1_location': row['R1'],
                 'R2_location': row['R2'],

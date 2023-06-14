@@ -577,6 +577,7 @@ def create_libraries(db:Session, libraries: dict[str, object]):
         if not db_libraries:
             library_created = Library(
                     sample_id = sample.id,
+                    sample_name = row['sample_name'],
                     sequencing_run_id = row['sequencing_run_id'],
                     most_abundant_species_name = row['most_abundant_species_name'],
                     most_abundant_species_fraction_total_reads = row['most_abundant_species_fraction_total_reads'],
@@ -598,8 +599,8 @@ def create_libraries(db:Session, libraries: dict[str, object]):
             for i in db_libraries:
                 libraries_json = {}
                 libraries_json['sample_id'] = sample_id
+                libraries_json['sample_name'] = i.sample_name
                 libraries_json['sequencing_run_id'] = i.sequencing_run_id
-
                 libraries_json['most_abundant_species_name'] = i.most_abundant_species_name
                 libraries_json['most_abundant_species_fraction_total_reads'] = i.most_abundant_species_fraction_total_reads
                 libraries_json['estimated_genome_size_bp'] = i.estimated_genome_size_bp
@@ -612,6 +613,7 @@ def create_libraries(db:Session, libraries: dict[str, object]):
                 if row != libraries_json: #only add if different from what is in the db
                     library_created = Library(
                         sample_id = sample.id,
+                        sample_name = row['sample_name'],
                         sequencing_run_id = row['sequencing_run_id'],
                         #library_id = Column(String)
                         most_abundant_species_name = row['most_abundant_species_name'],

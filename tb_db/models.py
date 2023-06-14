@@ -71,6 +71,7 @@ class Library(Base):
     """
 
     sample_id = Column(Integer, ForeignKey("sample.id"), nullable=False)
+    sample_name = Column(String)
     sequencing_run_id = Column(String)
     library_id = Column(String)
     most_abundant_species_name = Column(String)
