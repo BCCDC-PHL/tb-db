@@ -207,7 +207,6 @@ def parse_cgmlst(cgmlst_path: str, uncalled='-'):
 
 def parse_run_ids(locations_path):
 
-    #sample_run = []
     with open(locations_path, 'r') as f:
         reader = csv.DictReader(f)
         runs = {rows['ID'][:6]:rows['R1'].split('/')[6] for rows in reader}
@@ -219,7 +218,6 @@ def parse_run_ids(locations_path):
 # libraries
 def parse_libraries(qc_path, locations_path):
     qcs = []
-    #with open(args.qc, 'r') as f:
     with open(qc_path, 'r') as f:
         reader = csv.DictReader(f)
         for row in reader:
@@ -238,14 +236,12 @@ def parse_libraries(qc_path, locations_path):
             qcs.append(qc)
 
     locations = []
-    #with open(args.locations, 'r') as f:
+
     with open(locations_path, 'r') as f:
         reader = csv.DictReader(f)
         for row in reader:
             qc = [qc for qc in qcs if qc['sample_id'] == row['ID']]
-            #print(row['ID'])
             print(qc)
-            #print(qc[0]['most_abundant_species_name'])
             location = {
                 'sample_id': row['ID'][0:6],
                 'sample_name': row['ID'],
@@ -297,7 +293,7 @@ def parse_complex(complex_path):
 
 def parse_species(speciation_path):
     species = []
-    #with open(args.qc, 'r') as f:
+    
     with open(speciation_path, 'r') as f:
         reader = csv.DictReader(f)
         count = 0

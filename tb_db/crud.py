@@ -301,8 +301,9 @@ def create_miru_profile(db: Session, sample_id: str, miru_profile: dict[str, obj
 
     vntr_fields = {}
     for k, v in miru_profile.items():
-        if k.startswith("vntr_locus"):
-            vntr_fields[k] = v
+        if k is not None:
+            if k.startswith("vntr_locus"):
+                vntr_fields[k] = v
 
     num_fields_called = len(list(filter(lambda x: x != '-', vntr_fields.values())))
     num_fields_total = len(list(vntr_fields.values()))
@@ -388,8 +389,9 @@ def create_miru_profiles(db: Session, miru_profiles_by_sample_id: dict[str, obje
 
         vntr_fields = {}
         for k, v in miru_profile.items():
-            if k.startswith("vntr_locus"):
-                vntr_fields[k] = v
+            if k is not None:
+                if k.startswith("vntr_locus"):
+                    vntr_fields[k] = v
 
         num_fields_called = len(list(filter(lambda x: x != '-', vntr_fields.values())))
         num_fields_total = len(list(vntr_fields.values()))
