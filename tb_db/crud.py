@@ -115,7 +115,7 @@ def delete_sample(db: Session, sample_id: str):
 
 
 ### cgMLST
-def create_cgmlst_allele_profile(db: Session, scheme: dict, cgmlst_allele_profile: dict[str, object],runid):
+def create_cgmlst_allele_profile(db: Session, scheme: dict, cgmlst_allele_profile: dict[str, object],runid:str):
     """
     Create a single cgMLST allele profile record.
 
@@ -123,6 +123,8 @@ def create_cgmlst_allele_profile(db: Session, scheme: dict, cgmlst_allele_profil
     :type db: sqlalchemy.orm.Session
     :param cgmlst_allele_profile: Dictionary representing a cgMLST allele profile. Must include keys `sample_id`, `profile`, and `percent_called`
     :type cgmlst_allele_profiles: list[dict[str, object]]
+    :param runid: Sequencing Run ID
+    :type runid: str
     :return: Created cgMLST profiles
     :rtype: models.CgmlstAlleleProfile
     """
@@ -185,6 +187,8 @@ def create_cgmlst_allele_profiles(db: Session, scheme: dict, cgmlst_allele_profi
     :param db: Database session.
     :type db: sqlalchemy.orm.Session
     :param cgmlst_allele_profiles: List of dictionaries representing cgMLST allele profiles.
+    :param runs: a list of samples with theirs Sequencing Run ID
+    :type runid: list[dict[str,str]], keys: sample ids, value: sequencing run ids
     :type cgmlst_allele_profiles: list[dict[str, object]]
     :return: Created cgMLST allele profiles.
     :rtype: list[models.CgmlstAlleleProfile]
@@ -425,7 +429,16 @@ def create_miru_profiles(db: Session, miru_profiles_by_sample_id: dict[str, obje
 
 
 def get_miru_cluster_by_sample_id(db: Session, sample_id: str):
-    
+    """
+    Get miru cluster for a given sample.
+
+    :param db: Database session
+    :type db: sqlalchemy.orm.Session
+    :param sample_id: Sample ID
+    :type sample_id: str
+    :return: Miru Cluster name for the sample.
+    :rtype: str
+    """
     query_result = db.query(Sample).filter(
         Sample.sample_id == sample_id
     )
@@ -436,13 +449,6 @@ def get_miru_cluster_by_sample_id(db: Session, sample_id: str):
         miru_cluster_id = row.id
         code = db.query(MiruCluster).get(miru_cluster_id).cluster_id
         miru_cluster_code.append(code)
-    #miru_cluster_code = []
-    #for i in query_result.one_or_none().library:
-    #    cluster = i.miru_cluster
-    #    for row in cluster:
-    #        miru_cluster_id = row.id
-    #        code = db.query(MiruCluster).get(miru_cluster_id).cluster_id
-    #        miru_cluster_code.append(code)
 
     return miru_cluster_code
 
@@ -456,6 +462,8 @@ def add_samples_to_cgmlst_clusters(db: Session, cgmlst_cluster: list[dict[str, o
     :type db: sqlalchemy.orm.Session
     :param cgmlst_cluster: Dict representing a cgmlst cluster.
     :type cgmlst_cluster: dict[str, object]
+    :param runs: Dict with sample ids and their run ids
+    :type runs: dict[str,str]
     :return: sample with cgmlst cluster added.
     :rtype: models.Sample
     """
@@ -488,7 +496,7 @@ def add_samples_to_cgmlst_clusters(db: Session, cgmlst_cluster: list[dict[str, o
             library = [lib for lib in sample.library if lib.sequencing_run_id == runs[sample_id]][0]
         
             library.cgmlst_cluster.append(db_cgmlst_cluster)
-            #db.add(sample,db_cgmlst_cluster)
+            
             db_samples.append(library)
             db.commit()
 
@@ -496,7 +504,18 @@ def add_samples_to_cgmlst_clusters(db: Session, cgmlst_cluster: list[dict[str, o
 
 ### cgmlst
 def add_sample_to_cgmlst_cluster(db: Session, sample_id: str, cgmlst_cluster: dict[str, object], runid):
+    """
+    Create a cgmlst cluster, for sample specified by `sample_id` and `runid`.
 
+    :param db: Database session.
+    :type db: sqlalchemy.orm.Session
+    :param cgmlst_cluster: Dict representing a cgmlst cluster.
+    :type cgmlst_cluster: dict[str, object]
+    :param runs: Dict with sample ids and their run ids
+    :type runs: dict[str,str]
+    :return: sample with cgmlst cluster added.
+    :rtype: models.Sample
+    """
     existing_samples = db.query(Sample).all()
     existing_sample_ids = set([sample.sample_id for sample in existing_samples])
 
@@ -530,7 +549,16 @@ def add_sample_to_cgmlst_cluster(db: Session, sample_id: str, cgmlst_cluster: di
 
 
 def get_cgmlst_cluster_by_sample_id(db: Session, sample_id: str):
-    
+    """
+    Get cgmlst cluster(s) for sample specified by `sample_id`.
+
+    :param db: Database session.
+    :type db: sqlalchemy.orm.Session
+    :param sample_id: str representing sample id.
+    :type cgmlst_cluster: str
+    :return: a list of strings of cgmlst clusters this sample belongs to
+    :rtype: str
+    """
     query_result = db.query(Sample).filter(
         Sample.sample_id == sample_id
     )
@@ -542,18 +570,20 @@ def get_cgmlst_cluster_by_sample_id(db: Session, sample_id: str):
             cgmlst_cluster_id = row.id
             code = db.query(CgmlstCluster).get(cgmlst_cluster_id).cluster_id
             cgmlst_cluster_code.append(code)
-    #cgmlst_clusters = query_result.one_or_none().library.cgmlst_cluster
-    
-    #cgmlst_cluster_code = []
-    #for row in cgmlst_clusters:
-    #    cgmlst_cluster_id = row.id
-    #    code = db.query(CgmlstCluster).get(cgmlst_cluster_id).cluster_id
-    #    cgmlst_cluster_code.append(code)
 
     return cgmlst_cluster_code
 
 def create_libraries(db:Session, libraries: dict[str, object]):
+    """
+    Create/add libraries tables
 
+    :param db: Database session.
+    :type db: sqlalchemy.orm.Session
+    :param libraries: str representing sample id.
+    :type libraries: dict[str,object], dictionaries representing sample qc, keys:sample_id,sample_name,sequencing_run_id,most_abundant_species_name,most_abundant_species_fraction_total_reads,estimated_genome_size_bp...
+    :return: created libraries object
+    :rtype: models.Library
+    """
     existing_samples = db.query(Sample).all()
     existing_sample_ids = set([sample.sample_id for sample in existing_samples])
 
@@ -615,7 +645,6 @@ def create_libraries(db:Session, libraries: dict[str, object]):
                         sample_id = sample.id,
                         sample_name = row['sample_name'],
                         sequencing_run_id = row['sequencing_run_id'],
-                        #library_id = Column(String)
                         most_abundant_species_name = row['most_abundant_species_name'],
                         most_abundant_species_fraction_total_reads = row['most_abundant_species_fraction_total_reads'],
                         estimated_genome_size_bp = row['estimated_genome_size_bp'],
@@ -624,8 +653,7 @@ def create_libraries(db:Session, libraries: dict[str, object]):
                         average_base_quality = row['average_base_quality'],
                         percent_bases_above_q30 = row['percent_bases_above_q30'],
                         percent_gc = row['percent_gc'],
-                        #R1_location = row['R1_location'],
-                        #R2_location = row['R2_location']
+
                     )
                     db_created_libraries.append(library_created)
                     db.add_all(db_created_libraries)
@@ -653,7 +681,6 @@ def create_complexes(db: Session, complexes: list[dict[str, object]], runs:dict[
 
     db_complexes = []
     for complex in complexes:
-        #print(complex)
         sample_id = complex['sample_id']
         if sample_id not in existing_sample_ids:
             db_sample = Sample(
@@ -664,8 +691,7 @@ def create_complexes(db: Session, complexes: list[dict[str, object]], runs:dict[
         stmt = select(Sample).where(Sample.sample_id == sample_id)
         sample = db.scalars(stmt).one()
         library = [lib for lib in sample.library if lib.sequencing_run_id == runs[sample_id]][0]
-        #stmt = select(TbComplex).where(TbComplex.library_id == library.id) 
-        #db_complex = db.scalars(stmt).one_or_none()
+
         db_complex = library.tb_complex
 
         if db_complex:
@@ -712,13 +738,11 @@ def create_species(db: Session, species: list[dict[str, object]],runs:dict[str,s
     """
     existing_samples = db.query(Sample).all()
     existing_sample_ids = set([sample.sample_id for sample in existing_samples])
-    #print(species[0]['sample_id'])
     sample_id = species[0]['sample_id']
     stmt = select(Sample).where(Sample.sample_id == sample_id)
     sample = db.scalars(stmt).one()
     library = [lib for lib in sample.library if lib.sequencing_run_id == runs[sample_id]][0]
-    #stmt = select(TbSpecies).where(TbSpecies.sample_id == sample.id) 
-    #db_species = db.scalars(stmt).fetchmany()
+
     db_species = library.tb_species
     
     db_created_species = []
@@ -757,9 +781,18 @@ def create_species(db: Session, species: list[dict[str, object]],runs:dict[str,s
 
 
 def create_amr_summary(db: Session, amr_report: list[dict[str, object]], runs:dict[str,str]):
-    #creating models for amr and drug resistance
-    #amr is one to one relationship with sample
-    #whereas drug resistance is one to many
+    """
+    creating models for amr and drug resistance, amr is one to one relationship with sample,whereas drug resistance is one to many
+
+    :param db: Database session.
+    :type db: sqlalchemy.orm.Session
+    :param amr_report: list of dict representing amr profile for each sample
+    :type amr_report: list[dict[str,object]]
+    :param runs: dictionary representing samples and their run ids
+    :type runs: dict[str,str]
+    :return: created amr object
+    :rtype: models.AmrProfile
+    """
     existing_samples = db.query(Sample).all()
     existing_sample_ids = set([sample.sample_id for sample in existing_samples])
     sample_id = amr_report['id']

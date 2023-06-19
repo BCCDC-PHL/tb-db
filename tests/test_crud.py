@@ -127,7 +127,6 @@ class TestCrudSample(unittest.TestCase):
             'sample_id': 'SAM001',
             'sample_name' : 'SAM001',
             'sequencing_run_id':'TESTABC',
-            #'estimated_depth_coverage':40,
             'most_abundant_species_name':'mtb',
             "most_abundant_species_fraction_total_reads" : 90,
             "estimated_genome_size_bp" : 12345,
@@ -165,24 +164,6 @@ class TestCrudSample(unittest.TestCase):
         self.assertIsNotNone(created_sample)
         self.assertEqual(miru_id,['BC278'])
 
-    #def test_get_cgmlst_cluster(self):
-    #    cgmlst_cluster_dict = {
-    #        'key': 'SAM001',
-    #        'cluster': 'BC300'
-    #    }
-    #    sample_dict = {
-    #        'sample_id': 'SAM001',
-    #        'accession': 'ACC001',
-    #        'collection_date': datetime.date(1970, 1, 1)            
-    #    }
-
-    #    created_sample = crud.create_sample(self.session, sample_dict)
-        
-    #    result = crud.add_sample_to_cgmlst_cluster(self.session,'SAM001', cgmlst_cluster_dict)
-
-    #    cgmlst_id = crud.get_cgmlst_cluster_by_sample_id(self.session, 'SAM001')
-        
-    #    self.assertEqual(cgmlst_id,['BC300'])
 
     def test_delete_sample(self):
         sample_dict = {
@@ -259,7 +240,6 @@ class SampleCrudMachine(RuleBasedStateMachine):
         for deleted_sample in deleted_samples:
             assert(deleted_sample.accession == sample.accession)
             assert(deleted_sample.sample_id == sample.sample_id)
-            #assert(deleted_sample.accession == sample.accession)
 
 
 class CgmlstAlleleProfileCrudMachine(RuleBasedStateMachine):
@@ -278,16 +258,6 @@ class CgmlstAlleleProfileCrudMachine(RuleBasedStateMachine):
 
     @rule(target=Samples,
           sample_id=st.text(alphabet=(ASCII_ALPHANUMERIC + ASCII_ACCEPTABLE_IDENTIFIER_SYMBOLS)),
-          #sampsequencing_run_idle_id=st.text(alphabet=(ASCII_ALPHANUMERIC + ASCII_ACCEPTABLE_IDENTIFIER_SYMBOLS)),
-          #library_id=st.text(alphabet=(ASCII_ALPHANUMERIC + ASCII_ACCEPTABLE_IDENTIFIER_SYMBOLS)),
-          #most_abundant_species_name=st.text(alphabet=(ASCII_ALPHANUMERIC + ASCII_ACCEPTABLE_IDENTIFIER_SYMBOLS)),
-          #most_abundant_species_fraction_total_reads=st.floats(),
-          #estimated_genome_size_bp=st.integers(),
-          #estimated_depth_coverage=st.integers(),
-          #total_bases=st.integers(),
-          #average_base_quality=st.integers(),
-          #percent_bases_above_q30=st.integers(),
-          #percent_gc=st.integers(),
           accession=st.text(alphabet=ASCII_ALPHANUMERIC),
           collection_date=st.dates(min_value=datetime.date(1800,1,1), max_value=datetime.date(2200,1,1)))
 
@@ -298,22 +268,8 @@ class CgmlstAlleleProfileCrudMachine(RuleBasedStateMachine):
             'collection_date': collection_date,
         }
 
-        #libraries = {
-        #    'sample_id': sample_id,
-        #    'sequencing_run_id':sequencing_run_id,
-        #    'library_id' : library_id,
-        #    'most_abundant_species_name' : most_abundant_species_name,
-        #    'most_abundant_species_fraction_total_reads' : most_abundant_species_fraction_total_reads,
-        #    'estimated_genome_size_bp' : estimated_genome_size_bp,
-        #    'estimated_depth_coverage' : estimated_depth_coverage,
-        #    'total_bases' : total_bases,
-        #    'average_base_quality' : average_base_quality,
-        #    'percent_bases_above_q30' : percent_bases_above_q30,
-        #    'percent_gc' : percent_gc
 
-        #}
         created_sample = crud.create_sample(self.session, sample_dict)
-        #created_libraries = crud.create_libraries(self.session, libraries)
         
         if created_sample:
             json_serializable_sample = utils.row2dict(created_sample)
@@ -368,7 +324,6 @@ class CgmlstAlleleProfileCrudMachine(RuleBasedStateMachine):
         libraries = [{
             'sample_id': sample.sample_id,
             'sequencing_run_id':'TESTABC',
-            #'estimated_depth_coverage':40,
             'most_abundant_species_name':'mtb',
             "most_abundant_species_fraction_total_reads" : 90,
             "estimated_genome_size_bp" : 12345,
@@ -396,4 +351,5 @@ class CgmlstAlleleProfileCrudMachine(RuleBasedStateMachine):
 
         
 TestSampleCrudMachine = SampleCrudMachine.TestCase
+#the below test is commented out as it is no longer working with the new model
 #TestCgmlstAlleleProfileCrudMachine = CgmlstAlleleProfileCrudMachine.TestCase
