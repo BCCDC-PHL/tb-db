@@ -16,6 +16,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.orm import make_transient
 from sqlalchemy.orm import Session
 from sqlalchemy import Table
+from sqlalchemy import BigInteger
 
 def camel_to_snake(s: str) -> str:
     """
@@ -41,7 +42,7 @@ Base = declarative_base(cls=Base)
 association_table_cgmlst = Table(
     "association_table_cgmlst",
     Base.metadata,
-    Column("sample_id", ForeignKey("sample.id")),
+    Column("library_id", ForeignKey("library.id")),
     Column("cgmlst_cluster_id", ForeignKey("cgmlst_cluster.id")),
 )
 
@@ -59,8 +60,10 @@ class Sample(Base):
     accession = Column(String)
     collection_date = Column(Date)
 
-    cgmlst_cluster = relationship("CgmlstCluster", secondary=association_table_cgmlst, backref = 'samples')
-    miru_cluster = relationship("MiruCluster", secondary=association_table_miru, backref='samples')
+    library = relationship("Library", backref = 'samples')
+    miru_profile = relationship("MiruProfile", backref = 'samples', cascade="all,delete")
+    miru_cluster = relationship("MiruCluster", secondary=association_table_miru, backref ='samples', cascade="all, delete")
+
 
 
 class Library(Base):
@@ -68,8 +71,28 @@ class Library(Base):
     """
 
     sample_id = Column(Integer, ForeignKey("sample.id"), nullable=False)
+    sample_name = Column(String)
     sequencing_run_id = Column(String)
     library_id = Column(String)
+    most_abundant_species_name = Column(String)
+    most_abundant_species_fraction_total_reads = Column(Float)
+    estimated_genome_size_bp = Column(BigInteger)
+    estimated_depth_coverage = Column(Float)
+    total_bases = Column(BigInteger)
+    average_base_quality = Column(Float)
+    percent_bases_above_q30 = Column(Float)
+    percent_gc = Column(Float)
+
+
+    cgmlst_cluster = relationship("CgmlstCluster", secondary=association_table_cgmlst, backref = 'libraries', cascade="all, delete")
+
+    cgmlst_allele_profile = relationship("CgmlstAlleleProfile", backref = 'libraries', cascade="all,delete")
+    
+
+    tb_complex = relationship('TbComplex',backref = 'libraries', cascade = "all,delete")
+    tb_species = relationship('TbSpecies',backref = 'libraries', cascade = "all,delete")
+    amr_profile = relationship('AmrProfile', backref = 'libraries',cascade = "all,delete")
+
 
 
 class CgmlstScheme(Base):
@@ -85,7 +108,7 @@ class CgmlstAlleleProfile(Base):
     """
     """
 
-    sample_id = Column(Integer, ForeignKey("sample.id"), nullable=False)
+    library_id = Column(Integer, ForeignKey("library.id"), nullable=False)
     cgmlst_scheme_id = Column(Integer, ForeignKey("cgmlst_scheme.id"), nullable=True)
     percent_called = Column(Float)
     profile = Column(JSON)
@@ -109,3 +132,47 @@ class CgmlstCluster(Base):
 class MiruCluster(Base):
 
     cluster_id = Column(String)
+
+
+class TbComplex(Base):
+
+    library_id = Column(Integer, ForeignKey("library.id"), nullable=False)
+    mtbc_prop = Column(Float)
+    ntm_prop = Column(Float)
+    nonmycobacterium_prop = Column(Float)
+    unclassified_prop = Column(Float)
+    complex = Column(String)
+    reason = Column(String)
+    flag = Column(String)
+
+
+class TbSpecies(Base):
+
+    library_id = Column(Integer, ForeignKey("library.id"), nullable= False)
+    taxonomy_level = Column(String)
+    species_name = Column(String)
+    ncbi_taxonomy_id = Column(Float)
+    fraction_total_reads = Column(Float)
+    num_assigned_reads = Column(Float)
+
+
+class Drug(Base):
+
+    drug_id = Column(String)
+
+
+class AmrProfile(Base):
+
+    library_id = Column(Integer, ForeignKey("library.id"),nullable = False)
+    date = Column(Date)
+    dr_type = Column(String)
+    median_depth = Column(Integer)
+    tbprofiler_version = Column(JSON)
+
+    drug_mutation_profile = relationship("DrugMutationProfile", backref = 'amr_profile', cascade="all,delete")
+
+class DrugMutationProfile(Base):
+    #sample_id = Column(Integer, ForeignKey("sample.id"),nullable = False)
+    amr_id = Column(Integer, ForeignKey("amr_profile.id"), nullable= False)
+    drug = Column(Integer, ForeignKey("drug.id"), nullable = True)
+    mutation = Column(String)

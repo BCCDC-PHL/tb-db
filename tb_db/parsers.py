@@ -1,5 +1,6 @@
 import csv
 import datetime
+import json
 
 ### Samples
 def parse_samples(samples_path):
@@ -25,7 +26,7 @@ def parse_cgmlst_cluster(samples_path):
         for row in reader:
 
             sample = {
-                'sample_id': row['sample_id'],
+                'sample_id': row['sample_id'][:6],
                 'cluster':row['clusters_cgmlst'],
             }
             samples.append(sample)
@@ -184,6 +185,7 @@ def parse_cgmlst(cgmlst_path: str, uncalled='-'):
         reader = csv.DictReader(f)
         for row in reader:
             sample_id = row.pop('sample_id')
+            sample_id = sample_id[:6]
             profile = row
             num_total_loci = len(row)
             num_uncalled_loci = 0
@@ -202,3 +204,127 @@ def parse_cgmlst(cgmlst_path: str, uncalled='-'):
             }
 
     return cgmlst_by_sample_id
+
+def parse_run_ids(locations_path):
+
+    with open(locations_path, 'r') as f:
+        reader = csv.DictReader(f)
+        runs = {rows['ID'][:6]:rows['R1'].split('/')[6] for rows in reader}
+
+    
+    return runs
+
+
+# libraries
+def parse_libraries(qc_path, locations_path):
+    qcs = []
+    with open(qc_path, 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            qc = {
+                'sample_id': row['sample_id'],
+                'sample_name': row['sample_id'],
+                'most_abundant_species_name':row['most_abundant_species_name'],
+                'most_abundant_species_fraction_total_reads': float(row['most_abundant_species_fraction_total_reads']),
+                'estimated_genome_size_bp': int(row['estimated_genome_size_bp']),
+                'estimated_depth_coverage': float(row['estimated_depth_coverage']),
+                'total_bases': int(row['total_bases']),
+                'average_base_quality': float(row['average_base_quality']),
+                'percent_bases_above_q30': float(row['percent_bases_above_q30']),
+                'percent_gc': float(row['percent_gc'])
+            }
+            qcs.append(qc)
+
+    locations = []
+
+    with open(locations_path, 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            qc = [qc for qc in qcs if qc['sample_id'] == row['ID']]
+            print(qc)
+            location = {
+                'sample_id': row['ID'][0:6],
+                'sample_name': row['ID'],
+                'sequencing_run_id':row['R1'].split('/')[6],
+                'R1_location': row['R1'],
+                'R2_location': row['R2'],
+                'most_abundant_species_name': qc[0]['most_abundant_species_name'],
+                'most_abundant_species_fraction_total_reads': qc[0]['most_abundant_species_fraction_total_reads'],
+                'estimated_genome_size_bp': qc[0]['estimated_genome_size_bp'],
+                'estimated_depth_coverage': qc[0]['estimated_depth_coverage'],
+                'total_bases': qc[0]['total_bases'],
+                'average_base_quality': qc[0]['average_base_quality'],
+                'percent_bases_above_q30': qc[0]['percent_bases_above_q30'],
+                'percent_gc': qc[0]['percent_gc'],
+
+            }
+            locations.append(location)
+
+    return locations
+
+def dict_clean(items):
+    result = {}
+    for key, value in items:
+        if value == '':
+            value = '0'
+        result[key] = value
+    return result
+
+def parse_complex(complex_path):
+    complexes = []
+    with open(complex_path, 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:   
+            complex = {
+                'sample_id': row['sample_id'][:6],
+                'mtbc_prop' : row['MTBC'],
+                'ntm_prop' : row['NTM'],
+                'nonmycobacterium_prop' : row['non-mycobacterium'],
+                'unclassified_prop' : row['unclassified'],
+                'complex' : row['complex'],
+                'reason' : row['reason'],
+                'flag' : row['flag']
+            }
+            complexes.append(complex)
+        dict_str = json.dumps(complexes)
+        my_dict = json.loads(dict_str, object_pairs_hook=dict_clean)
+
+    return my_dict
+
+def parse_species(speciation_path):
+    species = []
+    
+    with open(speciation_path, 'r') as f:
+        reader = csv.DictReader(f)
+        count = 0
+        for row in reader:
+            if count == 5: #get only top 5 
+                break
+            else:
+                speci = {
+                    'sample_id': row['sample_id'][:6],
+                    'taxonomy_level' : row['taxonomy_lvl'],
+                    'name' : row['name'],
+                    'ncbi_taxonomy_id' : row['taxonomy_id'],
+                    'fraction_total_reads' : row['fraction_total_reads'],
+                    'num_assigned_reads' : row['kraken_assigned_reads']
+                    
+                }
+                species.append(speci)
+                count+=1
+    
+    return species
+
+def parse_amr_summary(amr_path):
+    
+    f = open(amr_path)
+  
+    # returns JSON object as 
+    # a dictionary
+    data = json.load(f)
+    print(data['timestamp'])
+    data['timestamp'] = datetime.datetime.strptime(data['timestamp'], "%d-%m-%Y %H:%M:%S")
+
+    f.close()
+
+    return data
