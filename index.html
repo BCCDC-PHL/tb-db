@@ -42,14 +42,21 @@
 <li><a class="reference internal" href="#">BCCDC-PHL TB Genomics Database</a></li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 <li><a class="reference internal" href="#tb-db-crud">tb_db.crud</a><ul>
+<li><a class="reference internal" href="#tb_db.crud.add_sample_to_cgmlst_cluster"><code class="docutils literal notranslate"><span class="pre">add_sample_to_cgmlst_cluster()</span></code></a></li>
 <li><a class="reference internal" href="#tb_db.crud.add_samples_to_cgmlst_clusters"><code class="docutils literal notranslate"><span class="pre">add_samples_to_cgmlst_clusters()</span></code></a></li>
+<li><a class="reference internal" href="#tb_db.crud.create_amr_summary"><code class="docutils literal notranslate"><span class="pre">create_amr_summary()</span></code></a></li>
 <li><a class="reference internal" href="#tb_db.crud.create_cgmlst_allele_profile"><code class="docutils literal notranslate"><span class="pre">create_cgmlst_allele_profile()</span></code></a></li>
 <li><a class="reference internal" href="#tb_db.crud.create_cgmlst_allele_profiles"><code class="docutils literal notranslate"><span class="pre">create_cgmlst_allele_profiles()</span></code></a></li>
+<li><a class="reference internal" href="#tb_db.crud.create_complexes"><code class="docutils literal notranslate"><span class="pre">create_complexes()</span></code></a></li>
+<li><a class="reference internal" href="#tb_db.crud.create_libraries"><code class="docutils literal notranslate"><span class="pre">create_libraries()</span></code></a></li>
 <li><a class="reference internal" href="#tb_db.crud.create_miru_profile"><code class="docutils literal notranslate"><span class="pre">create_miru_profile()</span></code></a></li>
 <li><a class="reference internal" href="#tb_db.crud.create_miru_profiles"><code class="docutils literal notranslate"><span class="pre">create_miru_profiles()</span></code></a></li>
 <li><a class="reference internal" href="#tb_db.crud.create_sample"><code class="docutils literal notranslate"><span class="pre">create_sample()</span></code></a></li>
 <li><a class="reference internal" href="#tb_db.crud.create_samples"><code class="docutils literal notranslate"><span class="pre">create_samples()</span></code></a></li>
+<li><a class="reference internal" href="#tb_db.crud.create_species"><code class="docutils literal notranslate"><span class="pre">create_species()</span></code></a></li>
 <li><a class="reference internal" href="#tb_db.crud.delete_sample"><code class="docutils literal notranslate"><span class="pre">delete_sample()</span></code></a></li>
+<li><a class="reference internal" href="#tb_db.crud.get_cgmlst_cluster_by_sample_id"><code class="docutils literal notranslate"><span class="pre">get_cgmlst_cluster_by_sample_id()</span></code></a></li>
+<li><a class="reference internal" href="#tb_db.crud.get_miru_cluster_by_sample_id"><code class="docutils literal notranslate"><span class="pre">get_miru_cluster_by_sample_id()</span></code></a></li>
 <li><a class="reference internal" href="#tb_db.crud.get_sample"><code class="docutils literal notranslate"><span class="pre">get_sample()</span></code></a></li>
 </ul>
 </li>
@@ -123,14 +130,15 @@
 <p>This module includes methods used to Create, Read, Update and Delete (CRUD)
 entities from the database.</p>
 <span class="target" id="module-tb_db.crud"></span><dl class="py function">
-<dt class="sig sig-object py" id="tb_db.crud.add_samples_to_cgmlst_clusters">
-<span class="sig-prename descclassname"><span class="pre">tb_db.crud.</span></span><span class="sig-name descname"><span class="pre">add_samples_to_cgmlst_clusters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cgmlst_cluster</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tb_db.crud.add_samples_to_cgmlst_clusters" title="Permalink to this definition"></a></dt>
-<dd><p>Create multiple cgmlst clusters, for sample specified by <cite>sample_id</cite>.</p>
+<dt class="sig sig-object py" id="tb_db.crud.add_sample_to_cgmlst_cluster">
+<span class="sig-prename descclassname"><span class="pre">tb_db.crud.</span></span><span class="sig-name descname"><span class="pre">add_sample_to_cgmlst_cluster</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cgmlst_cluster</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tb_db.crud.add_sample_to_cgmlst_cluster" title="Permalink to this definition"></a></dt>
+<dd><p>Create a cgmlst cluster, for sample specified by <cite>sample_id</cite> and <cite>runid</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>db</strong> (<em>sqlalchemy.orm.Session</em>) – Database session.</p></li>
 <li><p><strong>cgmlst_cluster</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>object</em><em>]</em>) – Dict representing a cgmlst cluster.</p></li>
+<li><p><strong>runs</strong> (<em>dict</em><em>[</em><em>str</em><em>,</em><em>str</em><em>]</em>) – Dict with sample ids and their run ids</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -143,14 +151,57 @@ entities from the database.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="tb_db.crud.add_samples_to_cgmlst_clusters">
+<span class="sig-prename descclassname"><span class="pre">tb_db.crud.</span></span><span class="sig-name descname"><span class="pre">add_samples_to_cgmlst_clusters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cgmlst_cluster</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tb_db.crud.add_samples_to_cgmlst_clusters" title="Permalink to this definition"></a></dt>
+<dd><p>Create multiple cgmlst clusters, for sample specified by <cite>sample_id</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>db</strong> (<em>sqlalchemy.orm.Session</em>) – Database session.</p></li>
+<li><p><strong>cgmlst_cluster</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>object</em><em>]</em>) – Dict representing a cgmlst cluster.</p></li>
+<li><p><strong>runs</strong> (<em>dict</em><em>[</em><em>str</em><em>,</em><em>str</em><em>]</em>) – Dict with sample ids and their run ids</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>sample with cgmlst cluster added.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>models.Sample</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tb_db.crud.create_amr_summary">
+<span class="sig-prename descclassname"><span class="pre">tb_db.crud.</span></span><span class="sig-name descname"><span class="pre">create_amr_summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amr_report</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tb_db.crud.create_amr_summary" title="Permalink to this definition"></a></dt>
+<dd><p>creating models for amr and drug resistance, amr is one to one relationship with sample,whereas drug resistance is one to many</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>db</strong> (<em>sqlalchemy.orm.Session</em>) – Database session.</p></li>
+<li><p><strong>amr_report</strong> (<em>list</em><em>[</em><em>dict</em><em>[</em><em>str</em><em>,</em><em>object</em><em>]</em><em>]</em>) – list of dict representing amr profile for each sample</p></li>
+<li><p><strong>runs</strong> (<em>dict</em><em>[</em><em>str</em><em>,</em><em>str</em><em>]</em>) – dictionary representing samples and their run ids</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>created amr object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>models.AmrProfile</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="tb_db.crud.create_cgmlst_allele_profile">
-<span class="sig-prename descclassname"><span class="pre">tb_db.crud.</span></span><span class="sig-name descname"><span class="pre">create_cgmlst_allele_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cgmlst_allele_profile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tb_db.crud.create_cgmlst_allele_profile" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">tb_db.crud.</span></span><span class="sig-name descname"><span class="pre">create_cgmlst_allele_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheme</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cgmlst_allele_profile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tb_db.crud.create_cgmlst_allele_profile" title="Permalink to this definition"></a></dt>
 <dd><p>Create a single cgMLST allele profile record.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>db</strong> (<em>sqlalchemy.orm.Session</em>) – Database session</p></li>
 <li><p><strong>cgmlst_allele_profile</strong> – Dictionary representing a cgMLST allele profile. Must include keys <cite>sample_id</cite>, <cite>profile</cite>, and <cite>percent_called</cite></p></li>
+<li><p><strong>runid</strong> (<em>str</em>) – Sequencing Run ID</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -164,13 +215,14 @@ entities from the database.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tb_db.crud.create_cgmlst_allele_profiles">
-<span class="sig-prename descclassname"><span class="pre">tb_db.crud.</span></span><span class="sig-name descname"><span class="pre">create_cgmlst_allele_profiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cgmlst_allele_profiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tb_db.crud.create_cgmlst_allele_profiles" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">tb_db.crud.</span></span><span class="sig-name descname"><span class="pre">create_cgmlst_allele_profiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheme</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cgmlst_allele_profiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tb_db.crud.create_cgmlst_allele_profiles" title="Permalink to this definition"></a></dt>
 <dd><p>Create multiple cgMLST allele profile records.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>db</strong> (<em>sqlalchemy.orm.Session</em>) – Database session.</p></li>
 <li><p><strong>cgmlst_allele_profiles</strong> (<em>list</em><em>[</em><em>dict</em><em>[</em><em>str</em><em>, </em><em>object</em><em>]</em><em>]</em>) – List of dictionaries representing cgMLST allele profiles.</p></li>
+<li><p><strong>runs</strong> – a list of samples with theirs Sequencing Run ID</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -178,6 +230,46 @@ entities from the database.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>list[<a class="reference internal" href="#tb_db.models.CgmlstAlleleProfile" title="tb_db.models.CgmlstAlleleProfile">models.CgmlstAlleleProfile</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tb_db.crud.create_complexes">
+<span class="sig-prename descclassname"><span class="pre">tb_db.crud.</span></span><span class="sig-name descname"><span class="pre">create_complexes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">complexes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tb_db.crud.create_complexes" title="Permalink to this definition"></a></dt>
+<dd><p>Create multiple tb complexes assignment table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>db</strong> (<em>sqlalchemy.orm.Session</em>) – Database session.</p></li>
+<li><p><strong>complexes</strong> (<em>list</em><em>[</em><em>dict</em><em>[</em><em>str</em><em>, </em><em>object</em><em>]</em><em>]</em>) – List of dictionaries designating MTBC complex, NTM or non-mycobacteria.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Created tb complexes.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list[models.TbComplex]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tb_db.crud.create_libraries">
+<span class="sig-prename descclassname"><span class="pre">tb_db.crud.</span></span><span class="sig-name descname"><span class="pre">create_libraries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">libraries</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tb_db.crud.create_libraries" title="Permalink to this definition"></a></dt>
+<dd><p>Create/add libraries tables</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>db</strong> (<em>sqlalchemy.orm.Session</em>) – Database session.</p></li>
+<li><p><strong>libraries</strong> (<em>dict</em><em>[</em><em>str</em><em>,</em><em>object</em><em>]</em><em>, </em><em>dictionaries representing sample qc</em><em>, </em><em>keys:sample_id</em><em>,</em><em>sample_name</em><em>,</em><em>sequencing_run_id</em><em>,</em><em>most_abundant_species_name</em><em>,</em><em>most_abundant_species_fraction_total_reads</em><em>,</em><em>estimated_genome_size_bp</em><em>...</em>) – str representing sample id.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>created libraries object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#tb_db.models.Library" title="tb_db.models.Library">models.Library</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -265,6 +357,26 @@ entities from the database.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="tb_db.crud.create_species">
+<span class="sig-prename descclassname"><span class="pre">tb_db.crud.</span></span><span class="sig-name descname"><span class="pre">create_species</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">object</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tb_db.crud.create_species" title="Permalink to this definition"></a></dt>
+<dd><p>Create multiple tb species table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>db</strong> (<em>sqlalchemy.orm.Session</em>) – Database session.</p></li>
+<li><p><strong>species</strong> (<em>list</em><em>[</em><em>dict</em><em>[</em><em>str</em><em>, </em><em>object</em><em>]</em><em>]</em>) – List of dictionaries designating MTBC complex, NTM or non-mycobacteria.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Created tb species.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list[models.TbSpecies]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="tb_db.crud.delete_sample">
 <span class="sig-prename descclassname"><span class="pre">tb_db.crud.</span></span><span class="sig-name descname"><span class="pre">delete_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tb_db.crud.delete_sample" title="Permalink to this definition"></a></dt>
 <dd><p>Delete all database records for a sample.</p>
@@ -280,6 +392,46 @@ entities from the database.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>list[models.Sample]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tb_db.crud.get_cgmlst_cluster_by_sample_id">
+<span class="sig-prename descclassname"><span class="pre">tb_db.crud.</span></span><span class="sig-name descname"><span class="pre">get_cgmlst_cluster_by_sample_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tb_db.crud.get_cgmlst_cluster_by_sample_id" title="Permalink to this definition"></a></dt>
+<dd><p>Get cgmlst cluster(s) for sample specified by <cite>sample_id</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>db</strong> (<em>sqlalchemy.orm.Session</em>) – Database session.</p></li>
+<li><p><strong>sample_id</strong> – str representing sample id.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a list of strings of cgmlst clusters this sample belongs to</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tb_db.crud.get_miru_cluster_by_sample_id">
+<span class="sig-prename descclassname"><span class="pre">tb_db.crud.</span></span><span class="sig-name descname"><span class="pre">get_miru_cluster_by_sample_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tb_db.crud.get_miru_cluster_by_sample_id" title="Permalink to this definition"></a></dt>
+<dd><p>Get miru cluster for a given sample.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>db</strong> (<em>sqlalchemy.orm.Session</em>) – Database session</p></li>
+<li><p><strong>sample_id</strong> (<em>str</em>) – Sample ID</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Miru Cluster name for the sample.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
