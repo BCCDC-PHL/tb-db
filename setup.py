@@ -10,6 +10,7 @@ setup(
     install_requires=[
         "psycopg2-binary==2.9.3",
         "sqlalchemy==1.4.40",
+        "sqlalchemy-utils==0.40.0",
         "alembic==1.8.0"
     ],
     description="",
