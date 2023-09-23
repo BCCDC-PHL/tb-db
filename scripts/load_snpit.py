@@ -12,9 +12,6 @@ import tb_db.crud as crud
 
 from tb_db.models import Sample
 from tb_db.models import Library
-from tb_db.models import MiruProfile
-from tb_db.models import CgmlstScheme
-
 
 def main(args):
     with open(args.config, 'r') as f:
@@ -24,23 +21,17 @@ def main(args):
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    cgmlst_by_sample_id = parsers.parse_cgmlst(args.input)
-    cgmlst_profiles = list(cgmlst_by_sample_id.values())
-    cgmlst_scheme = {'name':'Ridom cgMLST.org','version':'2.1','num_loci':2891} 
 
+    parsed_snpit = parsers.parse_snpit(args.input)
+    print(parsed_snpit)
     #sample_run = parsers.parse_run_ids(args.locations)
+    created_snpit = crud.create_snpit(session, parsed_snpit, args.runid)
 
-    #print(sample_run)
-
-
-
-    created_profiles = crud.create_cgmlst_allele_profiles(session, cgmlst_scheme, cgmlst_profiles, args.runid)
-
-    for profile in created_profiles:
-        stmt = select(Library).where(Library.id == profile.library_id)
-        library = session.scalars(stmt).one()
-        print("Created profile for sample: " + library.samples.sample_id)
-
+    for snp in created_snpit:
+        stmt = select(Library).where(Library.id == snp.library_id)
+        sample = session.scalars(stmt).one()
+        print("Created snpit for: " + sample.samples.sample_id)
+    
 
 
 if __name__ == '__main__':

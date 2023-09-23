@@ -24,8 +24,8 @@ def main(args):
 
     parsed_amr = parsers.parse_amr_summary(args.input)
     #print(parsed_amr)
-    sample_run = parsers.parse_run_ids(args.locations)
-    created_amr_summary = crud.create_amr_summary(session, parsed_amr, sample_run)
+    #sample_run = parsers.parse_run_ids(args.locations)
+    created_amr_summary = crud.create_amr_summary(session, parsed_amr, args.runid)
 
     for amr in created_amr_summary:
         stmt = select(Library).where(Library.id == amr.library_id)
@@ -37,7 +37,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('input')
-    parser.add_argument('--locations')
+    parser.add_argument('--runid')
     parser.add_argument('-c', '--config', help="config file (JSON format))")
     args = parser.parse_args()
     main(args)

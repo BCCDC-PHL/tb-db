@@ -24,8 +24,8 @@ def main(args):
 
     parsed_complex = parsers.parse_complex(args.input)
 
-    sample_run = parsers.parse_run_ids(args.locations)
-    created_complexes = crud.create_complexes(session, parsed_complex,sample_run)
+    #sample_run = parsers.parse_run_ids(args.locations)
+    created_complexes = crud.create_complexes(session, parsed_complex,args.runid)
 
     #created_species = crud.create_species(session,)
 
@@ -41,7 +41,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('input')
-    parser.add_argument('--locations')
+    parser.add_argument('--runid')
     parser.add_argument('-c', '--config', help="config file (JSON format))")
     args = parser.parse_args()
     main(args)

@@ -57,8 +57,8 @@ association_table_miru = Table(
 class Sample(Base):
 
     sample_id = Column(String)
-    accession = Column(String)
-    collection_date = Column(Date)
+    #accession = Column(String)
+    #collection_date = Column(Date)
 
     library = relationship("Library", backref = 'samples')
     miru_profile = relationship("MiruProfile", backref = 'samples', cascade="all,delete")
@@ -71,9 +71,9 @@ class Library(Base):
     """
 
     sample_id = Column(Integer, ForeignKey("sample.id"), nullable=False)
-    sample_name = Column(String)
+    #sample_name = Column(String)
     sequencing_run_id = Column(String)
-    library_id = Column(String)
+    #library_id = Column(String)
     most_abundant_species_name = Column(String)
     most_abundant_species_fraction_total_reads = Column(Float)
     estimated_genome_size_bp = Column(BigInteger)
@@ -82,6 +82,27 @@ class Library(Base):
     average_base_quality = Column(Float)
     percent_bases_above_q30 = Column(Float)
     percent_gc = Column(Float)
+    
+    #use below if switching to using fastp
+    #total_reads_before_filtering = Column(BigInteger)
+    #total_reads_after_filtering	= Column(BigInteger)
+    #total_bases_before_filtering = Column(BigInteger)	
+    #total_bases_after_filtering	= Column(BigInteger)
+    #estimated_depth_coverage = Column(Float)
+    #read1_mean_length_before_filtering = Column(Integer)
+    #read1_mean_length_after_filtering = Column(Integer)
+    #read2_mean_length_before_filtering = Column(Integer)	
+    #read2_mean_length_after_filtering = Column(Integer)
+    #q20_bases_before_filtering	= Column(BigInteger)
+    #q20_bases_after_filtering	= Column(BigInteger)
+    #q20_rate_before_filtering = Column(Float)
+    #q20_rate_after_filtering = Column(Float)	
+    #q30_bases_before_filtering = Column(BigInteger)
+    #q30_bases_after_filtering = Column(BigInteger)
+    #q30_rate_before_filtering = Column(Float)	
+    #q30_rate_after_filtering = Column(Float)
+    #gc_content_before_filtering = Column(Float)
+    #gc_content_after_filtering = Column(Float)
 
 
     cgmlst_cluster = relationship("CgmlstCluster", secondary=association_table_cgmlst, backref = 'libraries', cascade="all, delete")
@@ -92,7 +113,7 @@ class Library(Base):
     tb_complex = relationship('TbComplex',backref = 'libraries', cascade = "all,delete")
     tb_species = relationship('TbSpecies',backref = 'libraries', cascade = "all,delete")
     amr_profile = relationship('AmrProfile', backref = 'libraries',cascade = "all,delete")
-
+    snpit = relationship('Snpit', backref = 'libraries', cascade = "all,delete")
 
 
 class CgmlstScheme(Base):
@@ -176,3 +197,12 @@ class DrugMutationProfile(Base):
     amr_id = Column(Integer, ForeignKey("amr_profile.id"), nullable= False)
     drug = Column(Integer, ForeignKey("drug.id"), nullable = True)
     mutation = Column(String)
+
+class Snpit(Base):
+
+    library_id = Column(Integer, ForeignKey("library.id"), nullable = False)
+    species = Column(String)
+    lineage = Column(String)
+    sublineage = Column(String)
+    name = Column(String)
+    percent = Column(Float)
