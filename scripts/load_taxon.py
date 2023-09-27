@@ -25,8 +25,14 @@ def main(args):
     parsed_species = parsers.parse_species(args.input)
 
    
-    sample_run = parsers.parse_run_ids(args.locations)
-    created_species = crud.create_species(session, parsed_species,sample_run)
+    #sample_run = parsers.parse_run_ids(args.locations)
+    print(parsed_species)
+
+    #for row in parsed_species:
+        #print(row)
+    #    print(parsed_species[row])
+        #print(row.key())
+    created_species = crud.create_species(session, parsed_species,args.runid)
 
     for created_speci in created_species:
         stmt = select(Library).where(Library.id == created_speci.library_id)
@@ -40,7 +46,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('input')
-    parser.add_argument('--locations')
+    parser.add_argument('--runid')
     parser.add_argument('-c', '--config', help="config file (JSON format))")
     args = parser.parse_args()
     main(args)

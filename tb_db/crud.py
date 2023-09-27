@@ -29,7 +29,7 @@ def create_sample(db: Session, sample: dict[str, object]):
     conditions_for_insertion = {
         "sample_id_not_in_db": sample['sample_id'] not in existing_sample_ids,
         "sample_id_not_empty_string": sample['sample_id'] != '',
-        "accession_not_empty_string": sample['accession'] != '',
+        #"accession_not_empty_string": sample['accession'] != '',
     }
 
     conditions_met = conditions_for_insertion.values()
@@ -37,8 +37,8 @@ def create_sample(db: Session, sample: dict[str, object]):
     if all(conditions_met):
         db_sample = Sample(
             sample_id = sample['sample_id'],
-            accession = sample['accession'],
-            collection_date = sample['collection_date'],
+            #accession = sample['accession'],
+            #collection_date = sample['collection_date'],
         )
         db.add(db_sample)
         db.commit()
@@ -180,7 +180,7 @@ def create_cgmlst_allele_profile(db: Session, scheme: dict, cgmlst_allele_profil
     return db_cgmlst_allele_profile
 
 
-def create_cgmlst_allele_profiles(db: Session, scheme: dict, cgmlst_allele_profiles: list[dict[str, object]], runs: list[dict[str, str]]):
+def create_cgmlst_allele_profiles(db: Session, scheme: dict, cgmlst_allele_profiles: list[dict[str, object]], runs: str):
     """
     Create multiple cgMLST allele profile records.
 
@@ -219,8 +219,9 @@ def create_cgmlst_allele_profiles(db: Session, scheme: dict, cgmlst_allele_profi
             db.commit()
         stmt = select(Sample).where(Sample.sample_id == sample_id)
         sample = db.scalars(stmt).one()
-
-        library = [lib for lib in sample.library if lib.sequencing_run_id == runs[sample_id]][0]
+        print(sample_id)
+        print(sample)
+        library = [lib for lib in sample.library if lib.sequencing_run_id == runs][0]
 
         db_cgmlst_allele_profile = CgmlstAlleleProfile(
             library_id = library.id,
@@ -286,7 +287,7 @@ def create_miru_profile(db: Session, sample_id: str, miru_profile: dict[str, obj
     if sample_id not in existing_sample_ids:
         db_sample = Sample(
             sample_id = sample_id,
-            collection_date = miru_profile['collection_date']
+            #collection_date = miru_profile['collection_date']
         )
         db.add(db_sample)
         db.commit()
@@ -301,7 +302,7 @@ def create_miru_profile(db: Session, sample_id: str, miru_profile: dict[str, obj
 
     vntr_fields = {}
     for k, v in miru_profile.items():
-        if k is not None:
+        if k is not None and isinstance(k,str):
             if k.startswith("vntr_locus"):
                 vntr_fields[k] = v
 
@@ -374,8 +375,8 @@ def create_miru_profiles(db: Session, miru_profiles_by_sample_id: dict[str, obje
         if sample_id not in existing_sample_ids:
             db_sample = Sample(
                 sample_id = sample_id,
-                accession = miru_profile['accession'],
-                collection_date = miru_profile['collection_date']
+                #accession = miru_profile['accession'],
+                #collection_date = miru_profile['collection_date']
             )
             db.add(db_sample)
             db.commit()
@@ -389,7 +390,7 @@ def create_miru_profiles(db: Session, miru_profiles_by_sample_id: dict[str, obje
 
         vntr_fields = {}
         for k, v in miru_profile.items():
-            if k is not None:
+            if k is not None and isinstance(k,str):
                 if k.startswith("vntr_locus"):
                     vntr_fields[k] = v
 
@@ -456,7 +457,7 @@ def get_miru_cluster_by_sample_id(db: Session, sample_id: str):
 
 
 ### cgmlst
-def add_samples_to_cgmlst_clusters(db: Session, cgmlst_cluster: list[dict[str, object]], runs: dict[str,str]):
+def add_samples_to_cgmlst_clusters(db: Session, cgmlst_cluster: list[dict[str, object]], runs: str):
     """
     Create multiple cgmlst clusters, for sample specified by `sample_id`.
 
@@ -495,7 +496,7 @@ def add_samples_to_cgmlst_clusters(db: Session, cgmlst_cluster: list[dict[str, o
         else:
             select_sample_stmt = select(Sample).where(Sample.sample_id == sample_id)
             sample = db.scalars(select_sample_stmt).one()
-            library = [lib for lib in sample.library if lib.sequencing_run_id == runs[sample_id]][0]
+            library = [lib for lib in sample.library if lib.sequencing_run_id == runs][0]
         
             library.cgmlst_cluster.append(db_cgmlst_cluster)
             
@@ -588,7 +589,7 @@ def create_libraries(db:Session, libraries: dict[str, object]):
     """
     existing_samples = db.query(Sample).all()
     existing_sample_ids = set([sample.sample_id for sample in existing_samples])
-
+    print(existing_samples)
 
     db_created_libraries = []
 
@@ -603,13 +604,13 @@ def create_libraries(db:Session, libraries: dict[str, object]):
             db.commit()
         stmt = select(Sample).where(Sample.sample_id == sample_id)
         sample = db.scalars(stmt).one()
+        print(sample)
         stmt = select(Library).where(Library.sample_id == sample.id) 
         db_libraries = db.scalars(stmt).fetchmany()
 
         if not db_libraries:
             library_created = Library(
                     sample_id = sample.id,
-                    sample_name = row['sample_name'],
                     sequencing_run_id = row['sequencing_run_id'],
                     most_abundant_species_name = row['most_abundant_species_name'],
                     most_abundant_species_fraction_total_reads = row['most_abundant_species_fraction_total_reads'],
@@ -619,6 +620,28 @@ def create_libraries(db:Session, libraries: dict[str, object]):
                     average_base_quality = row['average_base_quality'],
                     percent_bases_above_q30 = row['percent_bases_above_q30'],
                     percent_gc = row['percent_gc']
+
+                    #use below if switching to fastp
+                    #total_reads_before_filtering = row['total_reads_before_filtering'],
+                    #total_reads_after_filtering	= row['total_reads_after_filtering'],
+                    #total_bases_before_filtering = row['total_bases_before_filtering'],	
+                    #total_bases_after_filtering	= row['total_bases_after_filtering'],
+                    #estimated_depth_coverage = row['estimated_depth_coverage'],
+                    #read1_mean_length_before_filtering = row['read1_mean_length_before_filtering'],
+                    #read1_mean_length_after_filtering = row['read1_mean_length_after_filtering'],
+                    #read2_mean_length_before_filtering = row['read2_mean_length_before_filtering'],
+                    #read2_mean_length_after_filtering = row['read2_mean_length_after_filtering'],
+                    #q20_bases_before_filtering	= row['q20_bases_before_filtering'],
+                    #q20_bases_after_filtering	= row['q20_bases_after_filtering'],
+                    #q20_rate_before_filtering = row['q20_rate_before_filtering'],
+                    #q20_rate_after_filtering = row['q20_rate_after_filtering'],
+                    #q30_bases_before_filtering = row['q30_bases_before_filtering'],
+                    #q30_bases_after_filtering = row['q30_bases_after_filtering'],
+                    #q30_rate_before_filtering = row['q30_rate_before_filtering'],
+                    #q30_rate_after_filtering = row['q30_rate_after_filtering'],
+                    #gc_content_before_filtering =row['gc_content_before_filtering'],
+                    #gc_content_after_filtering = row['gc_content_after_filtering'],
+
 
                 )
             db_created_libraries.append(library_created)
@@ -631,7 +654,6 @@ def create_libraries(db:Session, libraries: dict[str, object]):
             for i in db_libraries:
                 libraries_json = {}
                 libraries_json['sample_id'] = sample_id
-                libraries_json['sample_name'] = i.sample_name
                 libraries_json['sequencing_run_id'] = i.sequencing_run_id
                 libraries_json['most_abundant_species_name'] = i.most_abundant_species_name
                 libraries_json['most_abundant_species_fraction_total_reads'] = i.most_abundant_species_fraction_total_reads
@@ -641,11 +663,32 @@ def create_libraries(db:Session, libraries: dict[str, object]):
                 libraries_json['average_base_quality'] = i.average_base_quality
                 libraries_json['percent_bases_above_q30'] = i.percent_bases_above_q30
                 libraries_json['percent_gc'] = i.percent_gc
+
+                #use below if switching to fastp
+
+                #libraries_json['total_reads_before_filtering'] = i.total_reads_before_filtering
+                #libraries_json['total_reads_after_filtering']	= i.total_reads_after_filtering
+                #libraries_json['total_bases_before_filtering'] = i.total_bases_before_filtering	
+                #libraries_json['total_bases_after_filtering']	= i.total_bases_after_filtering
+                #libraries_json['estimated_depth_coverage'] = i.estimated_depth_coverage
+                #libraries_json['read1_mean_length_before_filtering'] = i.read1_mean_length_before_filtering
+                #libraries_json['read1_mean_length_after_filtering'] = i.read1_mean_length_after_filtering
+                #libraries_json['read2_mean_length_before_filtering'] = i.read2_mean_length_before_filtering
+                #libraries_json['read2_mean_length_after_filtering'] = i.read2_mean_length_after_filtering
+                #libraries_json['q20_bases_before_filtering']	= i.q20_bases_before_filtering
+                #libraries_json['q20_bases_after_filtering']	= i.q20_bases_after_filtering
+                #libraries_json['q20_rate_before_filtering'] = i.q20_rate_before_filtering
+                #libraries_json['q20_rate_after_filtering'] = i.q20_rate_after_filtering
+                #libraries_json['q30_bases_before_filtering'] = i.q30_bases_before_filtering
+                #libraries_json['q30_bases_after_filtering'] = i.q30_bases_after_filtering
+                #libraries_json['q30_rate_before_filtering'] = i.q30_rate_before_filtering
+                #libraries_json['q30_rate_after_filtering'] = i.q30_rate_after_filtering
+                #libraries_json['gc_content_before_filtering'] =i.gc_content_before_filtering
+                #libraries_json['gc_content_after_filtering'] = i.gc_content_after_filtering
                 
                 if row != libraries_json: #only add if different from what is in the db
                     library_created = Library(
                         sample_id = sample.id,
-                        sample_name = row['sample_name'],
                         sequencing_run_id = row['sequencing_run_id'],
                         most_abundant_species_name = row['most_abundant_species_name'],
                         most_abundant_species_fraction_total_reads = row['most_abundant_species_fraction_total_reads'],
@@ -655,6 +698,28 @@ def create_libraries(db:Session, libraries: dict[str, object]):
                         average_base_quality = row['average_base_quality'],
                         percent_bases_above_q30 = row['percent_bases_above_q30'],
                         percent_gc = row['percent_gc'],
+
+                        #use below if switching to fastp
+
+                        #total_reads_before_filtering = row['total_reads_before_filtering'],
+                        #total_reads_after_filtering	= row['total_reads_after_filtering'],
+                        #total_bases_before_filtering = row['total_bases_before_filtering']	,
+                        #total_bases_after_filtering	= row['total_bases_after_filtering'],
+                        #estimated_depth_coverage = row['estimated_depth_coverage'],
+                        #read1_mean_length_before_filtering = row['read1_mean_length_before_filtering'],
+                        #read1_mean_length_after_filtering = row['read1_mean_length_after_filtering'],
+                        #read2_mean_length_before_filtering = row['read2_mean_length_before_filtering'],
+                        #read2_mean_length_after_filtering = row['read2_mean_length_after_filtering'],
+                        #q20_bases_before_filtering	= row['q20_bases_before_filtering'],
+                        #q20_bases_after_filtering	= row['q20_bases_after_filtering'],
+                        #q20_rate_before_filtering = row['q20_rate_before_filtering'],
+                        #q20_rate_after_filtering = row['q20_rate_after_filtering'],
+                        #q30_bases_before_filtering = row['q30_bases_before_filtering'],
+                        #q30_bases_after_filtering = row['q30_bases_after_filtering'],
+                        #q30_rate_before_filtering = row['q30_rate_before_filtering'],
+                        #q30_rate_after_filtering = row['q30_rate_after_filtering'],
+                        #gc_content_before_filtering =row['gc_content_before_filtering'],
+                        #gc_content_after_filtering = row['gc_content_after_filtering'],
 
                     )
                     db_created_libraries.append(library_created)
@@ -667,7 +732,7 @@ def create_libraries(db:Session, libraries: dict[str, object]):
 
     return db_created_libraries
 
-def create_complexes(db: Session, complexes: list[dict[str, object]], runs:dict[str,str]):
+def create_complexes(db: Session, complexes: list[dict[str, object]], runs:str):
     """
     Create multiple tb complexes assignment table.
 
@@ -684,6 +749,7 @@ def create_complexes(db: Session, complexes: list[dict[str, object]], runs:dict[
     db_complexes = []
     for complex in complexes:
         sample_id = complex['sample_id']
+        print(sample_id)
         if sample_id not in existing_sample_ids:
             db_sample = Sample(
                 sample_id = sample_id
@@ -692,7 +758,7 @@ def create_complexes(db: Session, complexes: list[dict[str, object]], runs:dict[
             db.commit()
         stmt = select(Sample).where(Sample.sample_id == sample_id)
         sample = db.scalars(stmt).one()
-        library = [lib for lib in sample.library if lib.sequencing_run_id == runs[sample_id]][0]
+        library = [lib for lib in sample.library if lib.sequencing_run_id == runs][0]
 
         db_complex = library.tb_complex
 
@@ -727,7 +793,7 @@ def create_complexes(db: Session, complexes: list[dict[str, object]], runs:dict[
 
     return db_complexes
 
-def create_species(db: Session, species: list[dict[str, object]],runs:dict[str,str]):
+def create_species(db: Session, species: list[dict[str, object]],runs:str):
     """
     Create multiple tb species table.
 
@@ -740,49 +806,55 @@ def create_species(db: Session, species: list[dict[str, object]],runs:dict[str,s
     """
     existing_samples = db.query(Sample).all()
     existing_sample_ids = set([sample.sample_id for sample in existing_samples])
-    sample_id = species[0]['sample_id']
-    stmt = select(Sample).where(Sample.sample_id == sample_id)
-    sample = db.scalars(stmt).one()
-    library = [lib for lib in sample.library if lib.sequencing_run_id == runs[sample_id]][0]
 
-    db_species = library.tb_species
-    
-    db_created_species = []
+    for row in species:
+        sample_id = row
+        stmt = select(Sample).where(Sample.sample_id == sample_id)
+        sample = db.scalars(stmt).one()
+        print(sample_id)
+        library = [lib for lib in sample.library if lib.sequencing_run_id == runs][0]
+        #print(library)
 
-    if db_species: #if top5 species already exist, update
-        for i in range((len(species))):
-            print(i)
-            db_species[i].library_id = library.id
-            db_species[i].taxonomy_level = species[i]['taxonomy_level']
-            db_species[i].species_name = species[i]['name']
-            db_species[i].ncbi_taxonomy_id = species[i]['ncbi_taxonomy_id']
-            db_species[i].fraction_total_reads = species[i]['fraction_total_reads']
-            db_species[i].num_assigned_reads = species[i]['num_assigned_reads']
+        db_species = library.tb_species
+        #print(db_species)
+        db_created_species = []
+
+        if db_species: #if top5 species already exist, update
+        #    continue
+            for i in range(len(species[row])) :
+                print(i)
+                print(len(species[row]))
+                db_species[i].library_id = library.id
+                db_species[i].taxonomy_level = species[row][i]['taxonomy_level']
+                db_species[i].species_name = species[row][i]['name']
+                db_species[i].ncbi_taxonomy_id = species[row][i]['ncbi_taxonomy_id']
+                db_species[i].fraction_total_reads = species[row][i]['fraction_total_reads']
+                db_species[i].num_assigned_reads = species[row][i]['num_assigned_reads']
+                db.commit()
+        else:
+
+            for item in species[row]:    
+                speci_created = TbSpecies(
+                        library_id = library.id,
+                    
+                        taxonomy_level = item['taxonomy_level'],
+                        species_name = item['name'],
+                        ncbi_taxonomy_id = item['ncbi_taxonomy_id'],
+                        fraction_total_reads = item['fraction_total_reads'],
+                        num_assigned_reads = item['num_assigned_reads']
+                    )
+                db_created_species.append(speci_created)
+            
+            db.add_all(db_created_species)
+
+            for ds in db_created_species:
+                library.tb_species.append(ds)
             db.commit()
-    else:
-
-        for row in species:    
-            speci_created = TbSpecies(
-                    library_id = library.id,
-                
-                    taxonomy_level = row['taxonomy_level'],
-                    species_name = row['name'],
-                    ncbi_taxonomy_id = row['ncbi_taxonomy_id'],
-                    fraction_total_reads = row['fraction_total_reads'],
-                    num_assigned_reads = row['num_assigned_reads']
-                )
-            db_created_species.append(speci_created)
-        
-        db.add_all(db_created_species)
-
-        for ds in db_created_species:
-            library.tb_species.append(ds)
-        db.commit()
 
     return db_created_species
 
 
-def create_amr_summary(db: Session, amr_report: list[dict[str, object]], runs:dict[str,str]):
+def create_amr_summary(db: Session, amr_report: list[dict[str, object]], runs:str):
     """
     creating models for amr and drug resistance, amr is one to one relationship with sample,whereas drug resistance is one to many
 
@@ -801,7 +873,7 @@ def create_amr_summary(db: Session, amr_report: list[dict[str, object]], runs:di
     stmt = select(Sample).where(Sample.sample_id == sample_id)
     sample = db.scalars(stmt).one()
 
-    library = [lib for lib in sample.library if lib.sequencing_run_id == runs[sample_id]][0]
+    library = [lib for lib in sample.library if lib.sequencing_run_id == runs][0]
 
     db_amr_profile = library.amr_profile
     
@@ -863,6 +935,63 @@ def create_amr_summary(db: Session, amr_report: list[dict[str, object]], runs:di
 
 
 
+def create_snpit(db: Session, snpit: list[dict[str, object]], runs:str):
+    """
+    creating models for snpit, snpit is one to one relationship with library 
 
-    
-    
+    :param db: Database session.
+    :type db: sqlalchemy.orm.Session
+    :param snpit: list of dict representing snpit results for each sample
+    :type snpit: list[dict[str,object]]
+    :param runs: dictionary representing samples and their run ids
+    :type runs: str
+    :return: created snpit object
+    :rtype: models.Snpit
+    """
+    existing_samples = db.query(Sample).all()
+    existing_sample_ids = set([sample.sample_id for sample in existing_samples])
+
+    db_snpits = []
+    for snp in snpit:
+        print(snp)
+        sample_id = snp['sample_id']
+        print(sample_id)
+        if sample_id not in existing_sample_ids:
+            db_sample = Sample(
+                sample_id = sample_id
+            )
+            db.add(db_sample)
+            db.commit()
+        stmt = select(Sample).where(Sample.sample_id == sample_id)
+        sample = db.scalars(stmt).one()
+        library = [lib for lib in sample.library if lib.sequencing_run_id == runs][0]
+
+        db_snpit = library.snpit
+
+        if db_snpit:
+            db_snpit.library_id = library.id
+            db_snpit.species = snp['species']
+            db_snpit.lineage = snp['lineage']
+            db_snpit.sublineage = snp['sublineage']
+            db_snpit.name = snp['name']
+            db_snpit.percent = snp['percent']
+
+            db.commit()
+
+        else:
+            db_snpit = Snpit(
+                library_id = library.id,
+                species = snp['species'],
+                lineage = snp['lineage'],
+                sublineage = snp['sublineage'],
+                name = snp['name'],
+                percent = snp['percent']
+
+            )
+            db_snpits.append(db_snpit)
+            library.snpit.append(db_snpit)
+
+    db.add_all(db_snpits)
+    db.commit()
+
+    return db_snpits

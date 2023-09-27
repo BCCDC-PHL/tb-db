@@ -21,7 +21,7 @@ def main(args):
     session = Session()
 
 
-    parsed_libraries = parsers.parse_libraries(args.qc, args.locations)
+    parsed_libraries = parsers.parse_libraries(args.input, args.runid)
 
     created_libraries = crud.create_libraries(session,parsed_libraries)
 
@@ -36,8 +36,8 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--qc')
-    parser.add_argument('--locations')
+    parser.add_argument('input')
+    parser.add_argument('--runid')
     parser.add_argument('-c', '--config', help="config file (JSON format))")
     args = parser.parse_args()
     main(args)

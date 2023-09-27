@@ -26,7 +26,7 @@ def parse_cgmlst_cluster(samples_path):
         for row in reader:
 
             sample = {
-                'sample_id': row['sample_id'][:6],
+                'sample_id': row['sample_id'],
                 'cluster':row['clusters_cgmlst'],
             }
             samples.append(sample)
@@ -185,7 +185,6 @@ def parse_cgmlst(cgmlst_path: str, uncalled='-'):
         reader = csv.DictReader(f)
         for row in reader:
             sample_id = row.pop('sample_id')
-            sample_id = sample_id[:6]
             profile = row
             num_total_loci = len(row)
             num_uncalled_loci = 0
@@ -205,62 +204,75 @@ def parse_cgmlst(cgmlst_path: str, uncalled='-'):
 
     return cgmlst_by_sample_id
 
-def parse_run_ids(locations_path):
-
-    with open(locations_path, 'r') as f:
-        reader = csv.DictReader(f)
-        runs = {rows['ID'][:6]:rows['R1'].split('/')[6] for rows in reader}
-
-    
-    return runs
 
 
 # libraries
-def parse_libraries(qc_path, locations_path):
+def parse_libraries(qc_path, sequencing_run_id):
     qcs = []
     with open(qc_path, 'r') as f:
         reader = csv.DictReader(f)
         for row in reader:
+            float_fields = [
+                'most_abundant_species_fraction_total_reads',
+                'estimated_depth_coverage',
+                'average_base_quality',
+                'percent_bases_above_q30',
+                'percent_gc',
+             ]
+
+             int_fields = [
+                'estimated_genome_size_bp',
+                'total_bases'
+
+             ]
+            for field in float_fields:
+                try:
+                    row[field] = float(row[field])
+                except ValueError as e:
+                    row[field] = None
+
+            for field in int_fields:
+                try:
+                    row[field] = int(float(row[field]))
+                except ValueError as e:
+                    row[field] = None
             qc = {
                 'sample_id': row['sample_id'],
-                'sample_name': row['sample_id'],
+                'sequencing_run_id' : sequencing_run_id,
                 'most_abundant_species_name':row['most_abundant_species_name'],
-                'most_abundant_species_fraction_total_reads': float(row['most_abundant_species_fraction_total_reads']),
-                'estimated_genome_size_bp': int(row['estimated_genome_size_bp']),
-                'estimated_depth_coverage': float(row['estimated_depth_coverage']),
-                'total_bases': int(row['total_bases']),
-                'average_base_quality': float(row['average_base_quality']),
-                'percent_bases_above_q30': float(row['percent_bases_above_q30']),
-                'percent_gc': float(row['percent_gc'])
+                'most_abundant_species_fraction_total_reads': row['most_abundant_species_fraction_total_reads'],
+                'estimated_genome_size_bp': row['estimated_genome_size_bp'],
+                'estimated_depth_coverage': row['estimated_depth_coverage'],
+                'total_bases': row['total_bases'],
+                'average_base_quality': row['average_base_quality'],
+                'percent_bases_above_q30': row['percent_bases_above_q30'],
+                'percent_gc': row['percent_gc']
+
+                #use below if switching to fastp
+                #'total_reads_before_filtering' : int(row['total_reads_before_filtering']),
+                #'total_reads_after_filtering'	: int(row['total_reads_after_filtering']),
+                #'total_bases_before_filtering' : int(row['total_bases_before_filtering']),	
+                #'total_bases_after_filtering'	: int(row['total_bases_after_filtering']),
+                #'estimated_depth_coverage' : float(row['total_bases_before_filtering']) / 4400000,
+                #'read1_mean_length_before_filtering' : int(row['read1_mean_length_before_filtering']),
+                #'read1_mean_length_after_filtering' : int(row['read1_mean_length_after_filtering']),
+                #'read2_mean_length_before_filtering' : int(row['read2_mean_length_before_filtering']),	
+                #'read2_mean_length_after_filtering' : int(row['read2_mean_length_after_filtering']),
+                #'q20_bases_before_filtering'	: int(row['q20_bases_before_filtering']),
+                #'q20_bases_after_filtering'	: int(row['q20_bases_after_filtering']),
+                #'q20_rate_before_filtering' : float(row['q20_rate_before_filtering']),
+                #'q20_rate_after_filtering' : float(row['q20_rate_after_filtering'])	,
+                #'q30_bases_before_filtering' :int(row['q30_bases_before_filtering']),
+                #'q30_bases_after_filtering' : int(row['q30_bases_after_filtering']),
+                #'q30_rate_before_filtering' : float(row['q30_rate_before_filtering']),
+                #'q30_rate_after_filtering':  float(row['q30_rate_after_filtering']),
+                #'gc_content_before_filtering' :float(row['gc_content_before_filtering']),
+                #'gc_content_after_filtering'  :float(row['gc_content_after_filtering'])
             }
             qcs.append(qc)
 
-    locations = []
 
-    with open(locations_path, 'r') as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            qc = [qc for qc in qcs if qc['sample_id'] == row['ID']]
-            print(qc)
-            location = {
-                'sample_id': row['ID'][0:6],
-                'sample_name': row['ID'],
-                'sequencing_run_id':row['R1'].split('/')[6],
-                'R1_location': row['R1'],
-                'R2_location': row['R2'],
-                'most_abundant_species_name': qc[0]['most_abundant_species_name'],
-                'most_abundant_species_fraction_total_reads': qc[0]['most_abundant_species_fraction_total_reads'],
-                'estimated_genome_size_bp': qc[0]['estimated_genome_size_bp'],
-                'estimated_depth_coverage': qc[0]['estimated_depth_coverage'],
-                'total_bases': qc[0]['total_bases'],
-                'average_base_quality': qc[0]['average_base_quality'],
-                'percent_bases_above_q30': qc[0]['percent_bases_above_q30'],
-                'percent_gc': qc[0]['percent_gc'],
-
-            }
-            locations.append(location)
-
-    return locations
+    return qcs
 
 def dict_clean(items):
     result = {}
@@ -276,7 +288,7 @@ def parse_complex(complex_path):
         reader = csv.DictReader(f)
         for row in reader:   
             complex = {
-                'sample_id': row['sample_id'][:6],
+                'sample_id': row['sample_id'],
                 'mtbc_prop' : row['MTBC'],
                 'ntm_prop' : row['NTM'],
                 'nonmycobacterium_prop' : row['non-mycobacterium'],
@@ -292,26 +304,35 @@ def parse_complex(complex_path):
     return my_dict
 
 def parse_species(speciation_path):
-    species = []
+    species = {}
     
     with open(speciation_path, 'r') as f:
         reader = csv.DictReader(f)
-        count = 0
+
         for row in reader:
-            if count == 5: #get only top 5 
-                break
-            else:
+            top5 = []
+            for count in range(1,6):
+
+                abundance_name = 'abundance_'+ str(count) +'_name'
+                print(abundance_name)
+                abundance_tax_id = 'abundance_'+ str(count) +'_ncbi_taxonomy_id'
+                abundance_fraction_read = 'abundance_'+ str(count) +'_fraction_total_reads'
+                abundance_num_assigned_read = 'abundance_'+ str(count) +'_num_assigned_reads'
                 speci = {
-                    'sample_id': row['sample_id'][:6],
-                    'taxonomy_level' : row['taxonomy_lvl'],
-                    'name' : row['name'],
-                    'ncbi_taxonomy_id' : row['taxonomy_id'],
-                    'fraction_total_reads' : row['fraction_total_reads'],
-                    'num_assigned_reads' : row['kraken_assigned_reads']
+
+                    'taxonomy_level' : row['taxonomy_level'],
+                    'name' : row[abundance_name],
+                    'ncbi_taxonomy_id' : int(row[abundance_tax_id].replace('None','0')),
+                    'fraction_total_reads' : float(row[abundance_fraction_read].replace('None','0')),
+                    'num_assigned_reads' : int(row[abundance_num_assigned_read].replace('None','0'))
                     
                 }
-                species.append(speci)
-                count+=1
+
+
+                top5.append(speci)
+                print(len(top5))
+            species[row['sample_id']] = top5
+
     
     return species
 
@@ -326,5 +347,26 @@ def parse_amr_summary(amr_path):
     data['timestamp'] = datetime.datetime.strptime(data['timestamp'], "%d-%m-%Y %H:%M:%S")
 
     f.close()
+
+    return data
+
+def parse_snpit(snpit_path):
+
+    data = []
+
+    with open(snpit_path, 'r') as f:
+        reader = csv.DictReader(f)
+
+        for row in reader:
+            snpit = {
+                'sample_id': row['Sample'],
+                'species' : row['Species'],
+                'lineage' : row['Lineage'],
+                'sublineage' : row['Sublineage'],
+                'name' : row['Name'],
+                'percent' : float(row['Percentage']),
+
+            }
+            data.append(snpit)
 
     return data
