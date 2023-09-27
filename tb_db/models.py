@@ -57,8 +57,7 @@ association_table_miru = Table(
 class Sample(Base):
 
     sample_id = Column(String)
-    #accession = Column(String)
-    #collection_date = Column(Date)
+
 
     library = relationship("Library", backref = 'samples')
     miru_profile = relationship("MiruProfile", backref = 'samples', cascade="all,delete")
@@ -71,9 +70,7 @@ class Library(Base):
     """
 
     sample_id = Column(Integer, ForeignKey("sample.id"), nullable=False)
-    #sample_name = Column(String)
     sequencing_run_id = Column(String)
-    #library_id = Column(String)
     most_abundant_species_name = Column(String)
     most_abundant_species_fraction_total_reads = Column(Float)
     estimated_genome_size_bp = Column(BigInteger)
@@ -193,7 +190,7 @@ class AmrProfile(Base):
     drug_mutation_profile = relationship("DrugMutationProfile", backref = 'amr_profile', cascade="all,delete")
 
 class DrugMutationProfile(Base):
-    #sample_id = Column(Integer, ForeignKey("sample.id"),nullable = False)
+
     amr_id = Column(Integer, ForeignKey("amr_profile.id"), nullable= False)
     drug = Column(Integer, ForeignKey("drug.id"), nullable = True)
     mutation = Column(String)

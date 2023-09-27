@@ -185,7 +185,6 @@ def parse_cgmlst(cgmlst_path: str, uncalled='-'):
         reader = csv.DictReader(f)
         for row in reader:
             sample_id = row.pop('sample_id')
-            #sample_id = sample_id
             profile = row
             num_total_loci = len(row)
             num_uncalled_loci = 0
@@ -205,14 +204,6 @@ def parse_cgmlst(cgmlst_path: str, uncalled='-'):
 
     return cgmlst_by_sample_id
 
-def parse_run_ids(locations_path):
-
-    with open(locations_path, 'r') as f:
-        reader = csv.DictReader(f)
-        runs = {rows['ID'][:6]:rows['R1'].split('/')[6] for rows in reader}
-
-    
-    return runs
 
 
 # libraries
@@ -221,18 +212,41 @@ def parse_libraries(qc_path, sequencing_run_id):
     with open(qc_path, 'r') as f:
         reader = csv.DictReader(f)
         for row in reader:
+            float_fields = [
+                'most_abundant_species_fraction_total_reads',
+                'estimated_depth_coverage',
+                'average_base_quality',
+                'percent_bases_above_q30',
+                'percent_gc',
+             ]
+
+             int_fields = [
+                'estimated_genome_size_bp',
+                'total_bases'
+
+             ]
+            for field in float_fields:
+                try:
+                    row[field] = float(row[field])
+                except ValueError as e:
+                    row[field] = None
+
+            for field in int_fields:
+                try:
+                    row[field] = int(float(row[field]))
+                except ValueError as e:
+                    row[field] = None
             qc = {
                 'sample_id': row['sample_id'],
-                #'sample_name': row['sample_id'],
                 'sequencing_run_id' : sequencing_run_id,
                 'most_abundant_species_name':row['most_abundant_species_name'],
-                'most_abundant_species_fraction_total_reads': float(row['most_abundant_species_fraction_total_reads']),
-                'estimated_genome_size_bp': int(float(row['estimated_genome_size_bp'])),
-                'estimated_depth_coverage': float(row['estimated_depth_coverage']),
-                'total_bases': int(row['total_bases']),
-                'average_base_quality': float(row['average_base_quality']),
-                'percent_bases_above_q30': float(row['percent_bases_above_q30']),
-                'percent_gc': float(row['percent_gc'])
+                'most_abundant_species_fraction_total_reads': row['most_abundant_species_fraction_total_reads'],
+                'estimated_genome_size_bp': row['estimated_genome_size_bp'],
+                'estimated_depth_coverage': row['estimated_depth_coverage'],
+                'total_bases': row['total_bases'],
+                'average_base_quality': row['average_base_quality'],
+                'percent_bases_above_q30': row['percent_bases_above_q30'],
+                'percent_gc': row['percent_gc']
 
                 #use below if switching to fastp
                 #'total_reads_before_filtering' : int(row['total_reads_before_filtering']),
@@ -294,21 +308,18 @@ def parse_species(speciation_path):
     
     with open(speciation_path, 'r') as f:
         reader = csv.DictReader(f)
-        #count = 0
+
         for row in reader:
             top5 = []
             for count in range(1,6):
-                #if count == 5: #get only top 5 
-                #    break
-                #else:
-                
+
                 abundance_name = 'abundance_'+ str(count) +'_name'
                 print(abundance_name)
                 abundance_tax_id = 'abundance_'+ str(count) +'_ncbi_taxonomy_id'
                 abundance_fraction_read = 'abundance_'+ str(count) +'_fraction_total_reads'
                 abundance_num_assigned_read = 'abundance_'+ str(count) +'_num_assigned_reads'
                 speci = {
-                    #'sample_id': row['sample_id'],
+
                     'taxonomy_level' : row['taxonomy_level'],
                     'name' : row[abundance_name],
                     'ncbi_taxonomy_id' : int(row[abundance_tax_id].replace('None','0')),
@@ -321,8 +332,7 @@ def parse_species(speciation_path):
                 top5.append(speci)
                 print(len(top5))
             species[row['sample_id']] = top5
-                #species.append(speci)
-                #count+=1
+
     
     return species
 
